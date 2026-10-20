@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens do Figma ("E-commerce" > Home - Protótipo Alta).
+ *
+ * No Tailwind v4, cada variável de @theme gera as utilitárias correspondentes:
+ *   --color-red-300   -> bg-red-300, text-red-300, border-red-300
+ *   --text-heading    -> text-heading
+ *   --radius-card     -> rounded-card
+ */
+@theme {
+  /*
+   * A paleta padrão do Tailwind é descartada de propósito: só existem as cores
+   * do Figma, então nenhuma classe como `bg-red-600` compila silenciosamente
+   * com uma cor que não está no design.
+   */
+  --color-*: initial;
+
+  /* O "branco" do design é #FFFEFE (não #FFF), por isso sobrescrevemos o nome. */
+  --color-white: #fffefe;
+  --color-black: #000000;
+
+  /* Variáveis do Figma: Red/*, Neutral/*, Yellow/*, Purple/*, Green/* */
+  --color-red-100: #2e1715;
+  --color-red-200: #3b1e1b;
+  --color-red-300: #472421;
+  --color-red-400: #6e3833;
+  --color-red-500: #944b45;
+  --color-neutral-50: #121110;
+  --color-neutral-100: #33312d; /* texto digitado na busca */
+  --color-neutral-200: #4d4a44; /* texto das sugestões da busca */
+  --color-neutral-500: #e5decb;
+  --color-neutral-600: #ffefee; /* fundo da Home */
+  /*
+   * O Figma chama este valor de "Neutral/600" nas telas de login/cadastro, mas aqui ele resolve
+   * para #FFF7F7 (mais claro que o #FFEFEE da Home). Ganhou nome próprio para não colidir.
+   */
+  --color-neutral-700: #fff7f7;
+  --color-error: #a32e27; /* borda e mensagem de erro dos campos (não é variável do Figma) */
+  --color-yellow-100: #8c7e5a;
+  --color-purple-500: #735e6a;
+  --color-green-100: #262310;
+  --color-green-500: #aba44b;
+
+  /* Fontes. O Fraunces é variável; o design usa SOFT=0 e WONK=1 em todo o texto dele. */
+  --font-sans: "Mulish", sans-serif;
+  --font-heading: "Fraunces", serif;
+  --font-heading--font-variation-settings: "SOFT" 0, "WONK" 1;
+
+  /*
+   * Tamanhos de texto. O Figma usa line-height "auto" (normal) em todo o texto,
+   * mas a escala padrão do Tailwind embute um line-height em cada `text-*`.
+   * Zeramos para `normal` para o texto ocupar a mesma altura do design.
+   */
+  --text-sm: 0.875rem; /* 14px */
+  --text-sm--line-height: normal;
+  --text-base: 1rem; /* 16px */
+  --text-base--line-height: normal;
+  --text-xl: 1.25rem; /* 20px */
+  --text-xl--line-height: normal;
+  --text-2xl: 1.5rem; /* 24px */
+  --text-2xl--line-height: normal;
+  --text-4xl: 2.25rem; /* 36px */
+  --text-4xl--line-height: normal;
+  --text-heading: 2.5rem; /* 40px: títulos de seção */
+  --text-heading--line-height: normal;
+  --text-display: 3.5rem; /* 56px: chamada "Beleza viva" */
+  --text-display--line-height: normal;
+
+  /* Entrada rápida dos dropdowns da navbar (busca e menu do usuário): surgem de cima, 160ms. */
+  --animate-dropdown: dropdown 160ms ease-out;
+  @keyframes dropdown {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Letter-spacing de -0.2px nos textos de 20px (e -0.36px nos de 36px). */
+  --tracking-snug: -0.01em;
+
+  /* Raios */
+  --radius-card: 5px;
+  --radius-chip: 17px;
+  --radius-input: 10px; /* campos de formulário e botões da tela de login */
+  --radius-footer: 80px;
+
+  /* Larguras de layout (frame de 1440px com margens de 80px) */
+  --container-page: 1440px;
+  --container-content: 1280px;
+  --container-carousel: 1370px;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-neutral-600);
+  color: var(--color-red-300);
+  font-family: var(--font-sans);
+}
