@@ -1,21 +1,21 @@
 import { Link } from 'react-router'
+import Button from '../Button'
 
-// Botão principal das telas de autenticação. Com `to` vira um link com a mesma aparência
-// (ex.: "Ir para o Login"), sem sair do roteamento do app.
+// Botão principal das telas de autenticação: o botão-base "large" ocupando a largura toda (e com o
+// hover dele). Com `to` vira um link com a mesma aparência (ex.: "Ir para o Login"), sem sair do
+// roteamento do app; sem `to`, é o botão de enviar do formulário.
 export default function PrimaryButton({ to, children, ...props }) {
-  const className =
-    'flex h-[52px] w-full items-center justify-center rounded-input bg-red-300 px-2.5 py-2 text-xl font-semibold text-neutral-700'
-
+  const shared = { size: 'large', className: 'w-full', ...props }
   if (to) {
     return (
-      <Link to={to} className={className} {...props}>
+      <Button as={Link} to={to} {...shared}>
         {children}
-      </Link>
+      </Button>
     )
   }
   return (
-    <button type="submit" className={className} {...props}>
+    <Button type="submit" {...shared}>
       {children}
-    </button>
+    </Button>
   )
 }

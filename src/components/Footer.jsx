@@ -15,16 +15,18 @@ export default function Footer() {
   return (
     // mt-[22px] + o gap de 44px da página = os 66px do Figma entre as seções; o logo
     // sobe 22px acima do topo marrom (-top-[22px]) e por isso não conta nesse espaço.
-    <footer className="relative mt-[22px] rounded-t-footer bg-red-300 pb-11 pt-[225px] text-white">
+    <footer className="relative mt-[22px] rounded-t-footer bg-red-300 pb-11 pt-[225px] text-neutral-700">
       {/*
         Textura de curvas de nível: é um PNG vertical (736x1472) girado 90° para cobrir o rodapé
         deitado. `mix-blend-color-dodge` clareia o marrom só nas linhas, por isso ela parece sutil.
+        Antes de girar, a altura da imagem vira a LARGURA na tela: 1448px no Figma, e `max(1448px, 100vw)`
+        faz ela acompanhar telas mais largas (sem isso, sobrariam faixas sem textura nas laterais).
       */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-footer mix-blend-color-dodge">
         <img
           src={footerTexture}
           alt=""
-          className="absolute left-1/2 top-1/2 h-[1448px] w-[724px] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90 rounded-[75px] object-cover"
+          className="absolute left-1/2 top-1/2 h-[max(1448px,100vw)] w-[724px] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90 rounded-[75px] object-cover"
         />
       </div>
 

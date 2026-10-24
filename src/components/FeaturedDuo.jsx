@@ -1,4 +1,5 @@
 import plusIcon from '../assets/icons/plus.svg'
+import Button from './Button'
 import ProductCard from './ProductCard'
 
 // Vitrine de dois produtos complementares ("A + B") com chamada à esquerda.
@@ -14,12 +15,10 @@ export default function FeaturedDuo({ products }) {
           Defenda a sua pele. A proteção solar perfeita alia-se ao alívio pós-solar. Ligeiro, apaziguante e feito
           para o verão.
         </p>
-        <a
-          href="#"
-          className="flex h-12 items-center justify-center rounded-card border-2 border-red-300 px-8 py-3 text-base font-semibold"
-        >
+        {/* Botão-base "medium" em contorno: no hover ele se preenche. */}
+        <Button as="a" href="#" variant="outline">
           Conferir agora
-        </a>
+        </Button>
       </div>
 
       <div className="relative flex min-w-0 flex-1 gap-6">

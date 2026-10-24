@@ -38,7 +38,7 @@ export default function Login() {
 
     const result = await login({ email, password })
     if (result.ok) {
-      signIn({ name: result.name }) // o Header passa a mostrar "Olá, <nome>!"
+      signIn({ name: result.name, email: result.email }) // o Header passa a mostrar "Olá, <nome>!"
       navigate('/')
       return
     }

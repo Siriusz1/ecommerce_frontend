@@ -3,9 +3,9 @@ import { AuthContext } from './authContext'
 
 const STORAGE_KEY = 'fysikos:user'
 
-// Guarda só o nome (nunca a senha) na sessionStorage para o usuário continuar "logado" ao recarregar
-// a página. O storage pode estar bloqueado (aba anônima, política do navegador): nesse caso a
-// sessão simplesmente vive só enquanto a página estiver aberta.
+// Guarda só nome e e-mail (nunca a senha) na sessionStorage para o usuário continuar "logado" ao
+// recarregar a página. O storage pode estar bloqueado (aba anônima, política do navegador): nesse
+// caso a sessão simplesmente vive só enquanto a página estiver aberta.
 function readStoredUser() {
   try {
     return JSON.parse(sessionStorage.getItem(STORAGE_KEY))
@@ -26,20 +26,19 @@ function storeUser(user) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(readStoredUser)
 
-  const value = useMemo(
-    () => ({
-      user, // { name } ou null
-      signIn: (nextUser) => {
-        storeUser(nextUser)
-        setUser(nextUser)
-      },
-      signOut: () => {
-        storeUser(null)
-        setUser(null)
-      },
-    }),
-    [user],
-  )
+  const value = useMemo(() => {
+    const replaceUser = (nextUser) => {
+      storeUser(nextUser)
+      setUser(nextUser)
+    }
+    return {
+      user, // { name, email } ou null
+      signIn: replaceUser,
+      signOut: () => replaceUser(null),
+      // Atualiza só alguns campos (ex.: o nome mostrado no Header depois de editar o perfil).
+      updateUser: (changes) => replaceUser({ ...user, ...changes }),
+    }
+  }, [user])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

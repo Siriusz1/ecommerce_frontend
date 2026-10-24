@@ -11,6 +11,13 @@ export const messages = {
   passwordTooShort: 'Sua senha não possui a quantidade de caracteres necessários. Digite uma senha válida.',
   passwordsDiffer: 'As senhas não são iguais. Por favor, tente novamente.',
   passwordGuide: `Sua senha precisa ter no mínimo ${MIN_PASSWORD_LENGTH} caracteres.`,
+  // Perfil: o Figma não desenha erros nessas telas; textos propostos no mesmo tom dos outros.
+  phoneInvalid: 'Digite um telefone válido, com DDD.',
+  currentPasswordEmpty: 'Digite a sua senha atual.',
+  currentPasswordWrong: 'Senha atual incorreta. Por favor, tente novamente.',
+  // Troca de e-mail (também sem frame no Figma; mesmo tom).
+  emailsDiffer: 'Os e-mails não são iguais. Por favor, tente novamente.',
+  emailUnchanged: 'O novo e-mail é igual ao atual. Digite um e-mail diferente.',
   // Este não existe no Figma (não há frame de "e-mail já cadastrado"); texto proposto no mesmo tom.
   emailTaken: "O e-mail informado já possui cadastro. Clique em 'Realizar login' para entrar.",
 }

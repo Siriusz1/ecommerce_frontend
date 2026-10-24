@@ -5,6 +5,8 @@ import heartIcon from '../../assets/icons/heart-nav.svg'
 import searchIcon from '../../assets/icons/search.svg'
 import logo from '../../assets/images/logo.png'
 import { useAuth } from '../../context/useAuth'
+import { useCart } from '../../context/useCart'
+import { useFavorites } from '../../context/useFavorites'
 import SearchBox from './SearchBox'
 import UserMenu from './UserMenu'
 
@@ -58,66 +60,100 @@ function NavIconButton({ icon, label, ...props }) {
  * A troca é uma transição de cor de fundo (300ms), por isso o fundo "transparente" é o próprio
  * vermelho escuro com 0% de opacidade: assim a animação é um fade puro, sem passar por cinza.
  */
-export default function Header({ heroRef }) {
+export default function Header({ heroRef, minimal = false }) {
   const { user, signOut } = useAuth()
+  // Só para os rótulos de acessibilidade da sacola e dos favoritos (o Figma não desenha contador).
+  const { count: cartCount } = useCart()
+  const { count: favoritesCount } = useFavorites()
   const isPastHero = useIsPastHero(heroRef)
   const isTransparent = Boolean(heroRef) && !isPastHero
 
   const [searchOpen, setSearchOpen] = useState(false)
+  // A caixa de busca anima ao fechar: o menu de categorias volta já no começo dessa saída, não só quando ela some.
+  const [searchClosing, setSearchClosing] = useState(false)
   const searchButtonRef = useRef(null)
+  const navHidden = searchOpen && !searchClosing
 
   const closeSearch = useCallback((restoreFocus = false) => {
     setSearchOpen(false)
-    // O botão de busca só volta ao DOM depois da atualização; espera o próximo frame para focá-lo.
+    setSearchClosing(false)
+    // O botão de busca só fica visível (e focável) depois da atualização; espera o próximo frame para focá-lo.
     if (restoreFocus) requestAnimationFrame(() => searchButtonRef.current?.focus())
   }, [])
+
+  // Checkout: só o logo, para a pessoa não se distrair do pagamento (o Figma desenha a barra assim).
+  if (minimal) {
+    return (
+      <header className="fixed inset-x-0 top-0 z-50 h-18 bg-red-800">
+        <div className="mx-auto flex h-full max-w-page items-center px-12">
+          <Link to="/" className="flex shrink-0 items-center">
+            <img src={logo} alt="Fysikos" className="h-18 w-[132px] object-cover" />
+          </Link>
+        </div>
+      </header>
+    )
+  }
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 h-18 transition-colors duration-300 ease-out motion-reduce:transition-none ${
-        isTransparent ? 'bg-red-100/0' : 'bg-red-100'
+        isTransparent ? 'bg-red-800/0' : 'bg-red-800'
       }`}
     >
-      <div className="mx-auto flex h-full max-w-page items-center justify-between px-12">
+      <div className="relative mx-auto flex h-full max-w-page items-center justify-between px-12">
         <Link to="/" className="flex w-[292px] shrink-0 items-center">
           {/* O arquivo do logo é uma arte larga (2816x1536); object-cover recorta para 132x72. */}
           <img src={logo} alt="Fysikos" className="h-18 w-[132px] object-cover" />
         </Link>
 
-        {searchOpen ? (
-          // Com a busca aberta, ela ocupa o lugar do menu de categorias (e do botão de lupa).
-          <SearchBox onClose={closeSearch} />
-        ) : (
-          <nav aria-label="Categorias" className="flex items-center gap-6">
-            {navItems.map((item) => (
-              // O sublinhado só aparece no hover; a borda transparente reserva o espaço para o item não pular.
-              <a
-                key={item}
-                href="#"
-                className="border-b-2 border-transparent pb-0.5 text-base font-semibold text-neutral-700 transition-colors hover:border-neutral-700"
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-        )}
+        {/*
+          O menu de categorias NUNCA sai do lugar: com a busca aberta ele só fica transparente (e inerte, fora do Tab e
+          dos leitores de tela) e a barra de busca cresce por cima dele. Assim nada pula de lugar durante a animação.
+        */}
+        <nav
+          aria-label="Categorias"
+          inert={navHidden}
+          className={`flex items-center gap-6 transition-opacity duration-200 motion-reduce:transition-none ${
+            navHidden ? 'opacity-0' : 'opacity-100'
+          }`}
+        >
+          {navItems.map((item) => (
+            // O sublinhado só aparece no hover; a borda transparente reserva o espaço para o item não pular.
+            <a
+              key={item}
+              href="#"
+              className="border-b-2 border-transparent pb-0.5 text-base font-semibold text-neutral-700 transition-colors hover:border-neutral-700"
+            >
+              {item}
+            </a>
+          ))}
+        </nav>
+        {searchOpen && <SearchBox onClose={closeSearch} onClosing={() => setSearchClosing(true)} />}
 
         <div className="flex shrink-0 items-center gap-2">
-          {!searchOpen && (
-            <button
-              ref={searchButtonRef}
-              type="button"
-              aria-label="Buscar"
-              onClick={() => setSearchOpen(true)}
+          {/* `invisible` (e não removido) mantém o lugar da lupa: a barra de busca nasce exatamente em cima dela. */}
+          <button
+            ref={searchButtonRef}
+            type="button"
+            aria-label="Buscar"
+            onClick={() => setSearchOpen(true)}
+            className={`flex size-11 items-center justify-center ${searchOpen ? 'invisible' : ''}`}
+          >
+            <img src={searchIcon} alt="" className="size-6" />
+          </button>
+          <div className="flex items-center gap-[9px]">
+            <NavIconButton
+              icon={heartIcon}
+              label={favoritesCount > 0 ? `Favoritos, ${favoritesCount} ${favoritesCount === 1 ? 'item' : 'itens'}` : 'Favoritos'}
+            />
+            <UserMenu user={user} onSignOut={signOut} />
+            <Link
+              to="/sacola"
+              aria-label={cartCount > 0 ? `Sacola, ${cartCount} ${cartCount === 1 ? 'item' : 'itens'}` : 'Sacola'}
               className="flex size-11 items-center justify-center"
             >
-              <img src={searchIcon} alt="" className="size-6" />
-            </button>
-          )}
-          <div className="flex items-center gap-[9px]">
-            <NavIconButton icon={heartIcon} label="Favoritos" />
-            <UserMenu user={user} onSignOut={signOut} />
-            <NavIconButton icon={bagIcon} label="Sacola" />
+              <img src={bagIcon} alt="" className="size-6" />
+            </Link>
           </div>
         </div>
       </div>

@@ -22,6 +22,9 @@
 
   /* Variáveis do Figma: Red/*, Neutral/*, Yellow/*, Purple/*, Green/* */
   --color-red-100: #2e1715;
+  --color-red-600: #5a2d29; /* estrelas de avaliação e link de e-mail dos termos */
+  --color-red-800: #351a18; /* fundo da navbar (Red/800) */
+  --color-link: #8a4b45; /* links da trilha de navegação e "Editar endereço" (o "Red/400" atual do Figma) */
   --color-red-200: #3b1e1b;
   --color-red-300: #472421;
   --color-red-400: #6e3833;
@@ -29,18 +32,36 @@
   --color-neutral-50: #121110;
   --color-neutral-100: #33312d; /* texto digitado na busca */
   --color-neutral-200: #4d4a44; /* texto das sugestões da busca */
+  --color-neutral-300: #807b71; /* texto/borda de campos somente leitura, itens inativos do menu */
+  --color-neutral-400: #b2ad9e; /* divisórias e detalhes secundários dos pedidos */
   --color-neutral-500: #e5decb;
-  --color-neutral-600: #ffefee; /* fundo da Home */
   /*
-   * O Figma chama este valor de "Neutral/600" nas telas de login/cadastro, mas aqui ele resolve
-   * para #FFF7F7 (mais claro que o #FFEFEE da Home). Ganhou nome próprio para não colidir.
+   * Fundo de TODAS as telas. O Figma atual usa um único valor, "Neutral/600" = "bg/page" = #FAF9F4 (antes eram dois:
+   * #FFEFEE na Home e #FFF7F7 nas demais telas). Os dois nomes continuam existindo porque o código já os usa (o 700
+   * também é a cor do texto claro sobre fundos escuros, que no Figma usa o mesmo #FAF9F4), mas valem o mesmo.
    */
-  --color-neutral-700: #fff7f7;
+  --color-neutral-600: #faf9f4;
+  --color-neutral-700: #faf9f4;
   --color-error: #a32e27; /* borda e mensagem de erro dos campos (não é variável do Figma) */
   --color-yellow-100: #8c7e5a;
   --color-purple-500: #735e6a;
   --color-green-100: #262310;
+  --color-green-200: #66622d; /* status "Entregue" */
+  --color-green-300: #999244; /* etapas concluídas da linha do tempo */
   --color-green-500: #aba44b;
+
+  /* Cores do perfil que o Figma usa sem ser variável (valores literais dos frames). */
+  --color-card: #f2f0e1; /* fundo dos cartões do perfil e dos pedidos */
+  --color-card-border: #d9d5b5; /* borda dos cartões e dos campos do perfil */
+  --color-field: #fdfcf6; /* fundo dos campos do perfil */
+  --color-field-readonly: #e6e3cb; /* fundo do campo que não pode ser editado (CPF) */
+  --color-panel: #f7f5ea; /* fundo do painel que abre sob a barra de senha/e-mail */
+  --color-ring: #e9e6cc; /* contorno de 3px em volta da barra + painel abertos */
+  --color-disabled: #d9d6bf; /* fundo do botão "Salvar alterações" desabilitado */
+
+  /* O "foco" dos campos do perfil: o mesmo contorno de 3px do formulário de senha aberto (classe `shadow-ring`). */
+  --shadow-ring: 0 0 0 3px var(--color-ring);
+  --color-warning: #8a5a00; /* status "saiu para entrega" */
 
   /* Fontes. O Fraunces é variável; o design usa SOFT=0 e WONK=1 em todo o texto dele. */
   --font-sans: "Mulish", sans-serif;
@@ -52,6 +73,8 @@
    * mas a escala padrão do Tailwind embute um line-height em cada `text-*`.
    * Zeramos para `normal` para o texto ocupar a mesma altura do design.
    */
+  --text-xs: 0.75rem; /* 12px: trilha de navegação */
+  --text-xs--line-height: normal;
   --text-sm: 0.875rem; /* 14px */
   --text-sm--line-height: normal;
   --text-base: 1rem; /* 16px */
@@ -80,6 +103,382 @@
     }
   }
 
+  /*
+   * Caixa de busca da navbar (SearchBox). Os quadros do Figma (lupa -> barra pequena -> barra inteira -> painel
+   * descendo -> painel com sugestões) viram UMA sequência contínua, toda em `clip-path` (nada é esticado):
+   *     0ms  a barra se revela da direita para a esquerda, a partir da lupa (400ms)
+   *   200ms  o painel desce de trás da barra (360ms)
+   *   240ms+ as sugestões entram, uma a cada 55ms (240ms cada)
+   * Fechar é o inverso e mais rápido (340ms no total). O SearchBox.jsx desmonta a caixa depois dos 340ms
+   * (CLOSE_MS) e usa ROW_START_MS/ROW_STEP_MS para o atraso das linhas: se mudar os tempos, ajuste lá também.
+   * `backwards` nas entradas: o clip só vale durante a animação e, depois dela, o elemento volta ao normal.
+   */
+  --animate-search-bar-in: search-bar-in 400ms cubic-bezier(0.22, 1, 0.36, 1) backwards,
+    search-fade-in 100ms ease-out backwards;
+  @keyframes search-bar-in {
+    from {
+      /* 52px = a lupa (44px) + o respiro de 8px à direita: a barra nasce exatamente em cima da lupa do cabeçalho. */
+      clip-path: inset(0 0 0 calc(100% - 52px) round 5px 5px 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0 round 5px 5px 0 0);
+    }
+  }
+  @keyframes search-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  --animate-search-panel-in: search-panel-in 360ms cubic-bezier(0.22, 1, 0.36, 1) 200ms backwards;
+  @keyframes search-panel-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  --animate-search-row: search-row-in 240ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  @keyframes search-row-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Saída: o painel sobe primeiro; a barra só recolhe para a lupa quando ele já está quase fechado. */
+  --animate-search-panel-out: search-panel-out 220ms cubic-bezier(0.64, 0, 0.78, 0) both;
+  @keyframes search-panel-out {
+    from {
+      clip-path: inset(0 0 0 0);
+    }
+    to {
+      clip-path: inset(0 0 100% 0);
+    }
+  }
+  --animate-search-bar-out: search-bar-out 220ms cubic-bezier(0.64, 0, 0.78, 0) 120ms both,
+    search-fade-out 100ms ease-in 240ms both;
+  @keyframes search-bar-out {
+    from {
+      clip-path: inset(0 0 0 0 round 5px 5px 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 calc(100% - 52px) round 5px 5px 0 0);
+    }
+  }
+  @keyframes search-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  /*
+   * "Ver mais" (ProductCarousel): no repouso é só o texto. No hover a seta nasce de trás da própria borda direita
+   * (uma janela de 0 -> 24px com a seta colada no fim dela, então a ponta aparece primeiro, como nos quadros 8px -> 21px
+   * -> 24px do Figma) enquanto o espaço de 12px abre. É uma transição de largura (ver o link no ProductCarousel.jsx).
+   */
+  --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /*
+   * Favoritar (FavoriteButton): como na sacola, UMA linha do tempo contínua por direção, montada de
+   * uma vez, em vez de trocar de quadro. Os quadros do Figma ("Component 3") são "fotos" dela.
+   * As medidas estão no sistema de 46x44px do botão (o coração parado tem centro em 23,22.5).
+   *
+   * FAVORITAR (ms depois do clique): 0-135 o coração cresce até 1.25x (antecipação) -> 135+ nasce uma
+   * "semente" no centro e cresce -> 270 raios abrem -> 330 a semente preenche o coração -> 380-640
+   * o coração cheio volta a 1x.   DESFAVORITAR: o cheio cai para fora enquanto o vazio entra por cima.
+   * O FavoriteButton.jsx encerra a animação em ADD_MS/REMOVE_MS: se mudar os tempos, ajuste lá também.
+   */
+
+  /* O coração inteiro: cresce (28 -> 30px no Figma = 1.25x), segura e volta a 1x com uma mola leve. */
+  --animate-fav-heart-add: fav-heart-add 640ms linear both;
+  @keyframes fav-heart-add {
+    0% {
+      transform: scale(1);
+      animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+    22% {
+      transform: scale(1.25);
+      animation-timing-function: linear;
+    }
+    58% {
+      transform: scale(1.25);
+      animation-timing-function: cubic-bezier(0.34, 1.4, 0.64, 1); /* passa de 1x e volta: o "assentar" */
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  /* A semente nasce com um estouro, cresce devagar dentro do coração e, no fim, o inunda. */
+  --animate-fav-seed: fav-seed 300ms linear 135ms both;
+  @keyframes fav-seed {
+    0% {
+      transform: scale(0);
+      animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    18% {
+      transform: scale(2);
+      animation-timing-function: linear;
+    }
+    62% {
+      transform: scale(7);
+      animation-timing-function: ease-in;
+    }
+    100% {
+      transform: scale(20);
+    }
+  }
+
+  /* O preenchimento do coração entra por baixo da semente que o inunda: sem corte entre as duas. */
+  --animate-fav-fill: fav-fill 140ms ease-out 330ms both;
+  @keyframes fav-fill {
+    from {
+      fill-opacity: 0;
+    }
+    to {
+      fill-opacity: 1;
+    }
+  }
+
+  /*
+   * Raios: cada um é uma linha de 1 unidade que se desloca, gira e estica. Passam pelas 3 poses do Figma
+   * (quadros 315 -> 316 -> 317: ficam mais longos, 5 -> 6 -> 7px, e mais para fora) e somem. As posições
+   * vêm de variáveis por raio (--x0/--y0/--a0/--l0 ... --x2/--y2/--a2/--l2), definidas no componente.
+   */
+  --animate-fav-ray: fav-ray 320ms linear 270ms both;
+  @keyframes fav-ray {
+    0% {
+      opacity: 0;
+      transform: translate(var(--x0), var(--y0)) rotate(var(--a0)) scaleX(0.4);
+    }
+    12% {
+      opacity: 1;
+      transform: translate(var(--x0), var(--y0)) rotate(var(--a0)) scaleX(var(--l0));
+    }
+    46% {
+      transform: translate(var(--x1), var(--y1)) rotate(var(--a1)) scaleX(var(--l1));
+    }
+    78% {
+      opacity: 1;
+      transform: translate(var(--x2), var(--y2)) rotate(var(--a2)) scaleX(var(--l2));
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--x2), var(--y2)) rotate(var(--a2)) scaleX(calc(var(--l2) * 0.5));
+    }
+  }
+
+  /* Desfavoritar: o coração cheio cai acelerando e sai pela base do botão (o desenho é recortado em 46x44). */
+  --animate-fav-fall: fav-fall 230ms cubic-bezier(0.25, 0.2, 0.8, 0.7) both;
+  @keyframes fav-fall {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(36px);
+    }
+  }
+
+  /*
+   * ...enquanto o vazio entra por cima, desacelera e pousa com uma pequena "batida" (passa 1.5px e volta).
+   * Os paradas (-22, -14, -7, 0px) são as posições dos quadros do Figma; a velocidade cai a cada trecho.
+   */
+  --animate-fav-enter: fav-enter 330ms linear 60ms both;
+  @keyframes fav-enter {
+    0% {
+      transform: translateY(-34px);
+    }
+    18% {
+      transform: translateY(-22px);
+    }
+    36% {
+      transform: translateY(-14px);
+    }
+    58% {
+      transform: translateY(-7px);
+      animation-timing-function: ease-in-out;
+    }
+    82% {
+      transform: translateY(1.5px);
+      animation-timing-function: ease-in-out;
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  /* Riscos de velocidade acima de cada coração: esticam com a queda e encolhem/somem. */
+  --animate-fav-streak-out: fav-streak-out 230ms ease-out both;
+  @keyframes fav-streak-out {
+    0% {
+      opacity: 0;
+      transform: scaleY(0);
+    }
+    25% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+    100% {
+      opacity: 0; /* some por completo: os riscos acompanham o coração, que já saiu do botão */
+      transform: scaleY(0.3);
+    }
+  }
+  --animate-fav-streak-in: fav-streak-in 330ms ease-out 60ms both;
+  @keyframes fav-streak-in {
+    0% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+    72% {
+      opacity: 1;
+      transform: scaleY(0.25);
+    }
+    100% {
+      opacity: 0;
+      transform: scaleY(0.25);
+    }
+  }
+
+  /*
+   * Animação "adicionar à sacola" (AddToCartButton): UMA linha do tempo contínua de 2s, em vez de
+   * trocar de quadro. Os quadros do Figma (tubo caindo, tubo entrando, sacola com check) são
+   * "fotos" de instantes dela. Marcos, em ms depois do clique:
+   *     0  o tubo começa a cair        400  faíscas e impacto na sacola
+   *   420  o tubo chega à boca        780  selo de check e brilhos
+   *  1700  tudo começa a sumir       2000  volta ao ícone parado
+   * O AddToCartButton.jsx encerra a animação aos 2000ms: se mudar esses tempos, ajuste lá também.
+   */
+
+  /* Queda acelerada (gravidade) até a boca da sacola e, dali, um deslizar mais lento: ela "engole" o tubo. */
+  --animate-cart-tube: cart-tube 760ms linear both, cart-fade-in 110ms ease-out both;
+  @keyframes cart-tube {
+    0% {
+      transform: translateY(-14px);
+      animation-timing-function: cubic-bezier(0.5, 0, 0.85, 0.45);
+    }
+    55% {
+      transform: translateY(24px); /* = tubo na boca da sacola, o quadro "entrando" do Figma */
+      /* O 2º valor (0.78) casa a velocidade de saída da queda (~330px/s) com a de entrada deste trecho,
+         para o tubo não "frear" de repente ao passar pela boca da sacola. */
+      animation-timing-function: cubic-bezier(0.15, 0.78, 0.35, 1);
+    }
+    100% {
+      transform: translateY(46px); /* totalmente dentro: recortado pela janela e invisível */
+    }
+  }
+  @keyframes cart-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Riscos de velocidade: esticam e somem enquanto o tubo cai. */
+  --animate-cart-trail: cart-trail 420ms ease-out both;
+  @keyframes cart-trail {
+    0% {
+      opacity: 0;
+      transform: scaleY(0.4);
+    }
+    30% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scaleY(1.3);
+    }
+  }
+
+  /* Faíscas do impacto: abrem e somem. */
+  --animate-cart-spark: cart-spark 460ms ease-out 400ms both;
+  @keyframes cart-spark {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    35% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.3);
+    }
+  }
+
+  /* A sacola amassa no impacto (mais larga e baixa) e volta oscilando, como uma mola. */
+  --animate-cart-bag: cart-bag 720ms ease-out 420ms both;
+  @keyframes cart-bag {
+    0% {
+      transform: scale(1, 1);
+    }
+    16% {
+      transform: scale(1.1, 0.86);
+    }
+    40% {
+      transform: scale(0.96, 1.06);
+    }
+    64% {
+      transform: scale(1.02, 0.99);
+    }
+    100% {
+      transform: scale(1, 1);
+    }
+  }
+
+  /* Selo de check: o overshoot vem da curva (o 1.56 passa de 1 e volta), não de um 3º keyframe. */
+  --animate-cart-pop: cart-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) 780ms both;
+  @keyframes cart-pop {
+    from {
+      transform: scale(0);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  /* Brilhos acima da sacola, junto com o check. */
+  --animate-cart-glint: cart-glint 300ms ease-out 800ms both;
+  @keyframes cart-glint {
+    from {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Saída: o selo e os brilhos esmaecem antes de o ícone parado voltar. */
+  --animate-cart-exit: cart-exit 300ms ease-in 1700ms both;
+  @keyframes cart-exit {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+  }
+
   /* Letter-spacing de -0.2px nos textos de 20px (e -0.36px nos de 36px). */
   --tracking-snug: -0.01em;
 
@@ -93,6 +492,36 @@
   --container-page: 1440px;
   --container-content: 1280px;
   --container-carousel: 1370px;
+}
+
+/*
+ * Cursor: tudo o que se clica mostra a mãozinha. O reset do Tailwind deixa os <button> com a seta, então a regra vale
+ * para a aplicação inteira em vez de uma classe em cada botão. Campos de texto mantêm o cursor de texto, e o que está
+ * desabilitado mostra "não permitido". Está em @layer base: uma classe `cursor-*` num elemento continua ganhando.
+ */
+@layer base {
+  a[href],
+  button,
+  summary,
+  select,
+  label:has(input[type='checkbox'], input[type='radio']),
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='submit'],
+  [role='button'],
+  [role='option'],
+  [role='menuitem'],
+  [role='radio'],
+  [role='tab'] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  select:disabled,
+  input:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
 }
 
 body {

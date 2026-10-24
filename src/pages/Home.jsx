@@ -15,28 +15,37 @@ export default function Home() {
   const heroRef = useRef(null)
 
   return (
-    // O design é um frame desktop de 1440px; acima disso a página fica centralizada.
-    <div className="mx-auto max-w-page overflow-x-clip">
+    // overflow-x-clip: a página ainda não tem layout para telas estreitas (o design é desktop). Sem isto, o rodapé,
+    // agora fora do container de 1440px, faria a página rolar na horizontal quando a janela é menor que o conteúdo.
+    <div className="overflow-x-clip">
       <Header heroRef={heroRef} />
+      {/* O banner e o rodapé ocupam a largura toda da tela; por isso ficam FORA do container de 1440px abaixo. */}
       <Hero ref={heroRef} />
 
-      {/* 44px entre as seções, que é o espaçamento padrão do Figma. */}
-      <main className="flex flex-col gap-11 pt-11">
-        <ProductCarousel title="Lançamentos" products={launches} />
-        <EditorialSection />
-        {/* Kits e a vitrine do duo são um bloco só: ficam a 32px, e não a 44px, um do outro. */}
-        <div className="flex flex-col gap-8">
-          <ProductCarousel title="Kits" products={kits} />
-          <FeaturedDuo products={duo} />
-        </div>
-        <CategoriesSection />
-        <ProductCarousel title="Sua rotina" products={routine} />
-        {/* O Figma deixa 60px acima desta faixa: 44px do gap + 16px extra. */}
-        <div className="mt-4">
-          <BenefitsStrip />
-        </div>
+      {/* O conteúdo segue o frame desktop de 1440px do Figma; acima disso fica centralizado. */}
+      <div className="mx-auto max-w-page overflow-x-clip">
+        {/* 44px entre as seções, que é o espaçamento padrão do Figma. */}
+        <main className="flex flex-col gap-11 pt-11">
+          <ProductCarousel title="Lançamentos" products={launches} />
+          <EditorialSection />
+          {/* Kits e a vitrine do duo são um bloco só: ficam a 32px, e não a 44px, um do outro. */}
+          <div className="flex flex-col gap-8">
+            <ProductCarousel title="Kits" products={kits} />
+            <FeaturedDuo products={duo} />
+          </div>
+          <CategoriesSection />
+          <ProductCarousel title="Sua rotina" products={routine} />
+          {/* O Figma deixa 60px acima desta faixa: 44px do gap + 16px extra. */}
+          <div className="mt-4">
+            <BenefitsStrip />
+          </div>
+        </main>
+      </div>
+
+      {/* mt-11 refaz os 44px que o `gap-11` do <main> dava antes de o rodapé sair de dentro dele. */}
+      <div className="mt-11">
         <Footer />
-      </main>
+      </div>
     </div>
   )
 }

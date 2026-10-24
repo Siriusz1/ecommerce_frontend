@@ -70,11 +70,19 @@ export default function UserMenu({ user, onSignOut }) {
       </button>
 
       {open && (
-        // O Figma não desenha este menu (só o ⌄ ao lado do nome); é o mínimo para poder sair da conta.
+        // O Figma não desenha este menu (só o ⌄ ao lado do nome); é o mínimo para chegar ao perfil e sair da conta.
         <div
           role="menu"
           className="absolute right-0 top-full mt-2 min-w-40 animate-dropdown rounded-card bg-neutral-700 p-1 text-base font-medium text-neutral-200"
         >
+          <Link
+            to="/perfil"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="block w-full rounded-card px-3 py-2 text-left transition-colors hover:bg-neutral-500/50"
+          >
+            Meu perfil
+          </Link>
           <button
             type="button"
             role="menuitem"

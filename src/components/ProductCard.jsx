@@ -1,42 +1,16 @@
-import bagIcon from '../assets/icons/bag.svg'
-import heartIcon from '../assets/icons/heart.svg'
+import { Link } from 'react-router'
 import shadowLeft from '../assets/icons/product-shadow-1.svg'
 import shadowRight from '../assets/icons/product-shadow-2.svg'
-import starIcon from '../assets/icons/star.svg'
-
-const formatPrice = (value) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
-
-// O Figma só tem o ícone de estrela cheia, então desenhamos exatamente `rating`
-// estrelas cheias; notas fracionadas (meia estrela) não existem no design.
-function Stars({ rating }) {
-  return (
-    <div className="flex items-center" role="img" aria-label={`Nota ${rating} de 5`}>
-      {Array.from({ length: rating }, (_, index) => (
-        <div key={index} className="flex w-6 flex-col items-center justify-center overflow-clip p-0.5">
-          <div className="relative h-4 w-[17px]">
-            {/* A estrela é desenhada com borda que sai do quadro de 17x16, daí o inset negativo. */}
-            <div className="absolute inset-[-6.25%_-5.88%]">
-              <img src={starIcon} alt="" className="block size-full max-w-none" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function IconButton({ icon, label }) {
-  return (
-    <button type="button" aria-label={label} className="flex h-11 w-[46px] items-center justify-center">
-      <img src={icon} alt="" className="size-6" />
-    </button>
-  )
-}
+import { formatPrice } from '../utils/format'
+import AddToCartButton from './AddToCartButton'
+import FavoriteButton from './FavoriteButton'
+import Stars from './Stars'
 
 export default function ProductCard({ product, className = '' }) {
   return (
-    <article className={`relative h-[440px] rounded-card border-2 border-neutral-500 ${className}`}>
+    <article
+      className={`relative h-[440px] rounded-card border-2 border-neutral-500 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-red-300 ${className}`}
+    >
       {/*
         O conteúdo cobre a borda inteira (-inset-0.5 compensa os 2px do border-2) para que a
         imagem fique centralizada no card, e não no espaço interno. Os botões de ação vêm
@@ -75,7 +49,19 @@ export default function ProductCard({ product, className = '' }) {
             pouco para baixo), o que mantém a descrição colada nele e o preço sempre no mesmo lugar.
           */}
           <div className="flex h-[60px] flex-col gap-1">
-            <h3 className="h-6 font-heading text-2xl text-red-200">{product.name}</h3>
+            <h3 className="h-6 font-heading text-2xl text-red-200">
+              {/*
+                "Link esticado": o ::after cobre o card inteiro, então o card todo leva à tela do produto. Os
+                botões de sacola e favorito (z-10, abaixo) ficam por cima dele, e não dentro do link, porque um
+                botão dentro de <a> é HTML inválido.
+              */}
+              <Link
+                to={`/produto/${product.id}`}
+                className="outline-none after:absolute after:inset-0 after:z-[1] after:content-['']"
+              >
+                {product.name}
+              </Link>
+            </h3>
             {/* max-w-80 reproduz a quebra do Figma: "...renovação / celular e firmeza." */}
             <p className="max-w-80 text-sm font-medium text-red-300">{product.description}</p>
           </div>
@@ -83,9 +69,9 @@ export default function ProductCard({ product, className = '' }) {
         </div>
       </div>
 
-      <div className="absolute right-3 top-2 flex flex-col">
-        <IconButton icon={bagIcon} label={`Adicionar ${product.name} à sacola`} />
-        <IconButton icon={heartIcon} label={`Favoritar ${product.name}`} />
+      <div className="absolute right-3 top-2 z-10 flex flex-col">
+        <AddToCartButton product={product} />
+        <FavoriteButton product={product} />
       </div>
     </article>
   )
