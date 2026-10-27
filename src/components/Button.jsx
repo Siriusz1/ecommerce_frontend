@@ -5,7 +5,7 @@
 //   medium     48px    16px   20px   (padrão)
 //   small      40px    14px   16px
 //
-//   variant   repouso                          hover
+//   variant   repouso                          hover   (danger: fundo vermelho de erro; hover escurece)
 //   default   fundo #472421, texto claro       fundo escurece para #3B1E1B
 //   outline   só borda #472421, texto escuro   PREENCHE com #472421 e o texto/ícone ficam claros
 //   (disabled)  fundo bege + texto cinza       sem hover (o estado "Disable" do Figma)
@@ -20,6 +20,10 @@ const SIZES = {
 const VARIANTS = {
   default: 'bg-red-300 text-neutral-700 hover:bg-red-200',
   outline: 'border-2 border-red-300 text-red-300 hover:bg-red-300 hover:text-neutral-700',
+  // Ação destrutiva (excluir/remover): o vermelho de erro do site; escurece no hover como o botão padrão.
+  danger: 'bg-error text-neutral-700 hover:bg-red-300',
+  // Ação destrutiva de menor peso (ex.: "Excluir cadastro" do painel): só a borda e o texto vermelhos; preenche ao passar o mouse.
+  'danger-outline': 'border-2 border-error text-error hover:bg-error hover:text-neutral-700',
 }
 
 // Desabilitado: um conjunto de classes à parte, sem nenhum `hover:`. Assim não precisa de `enabled:`,

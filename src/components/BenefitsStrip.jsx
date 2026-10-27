@@ -1,15 +1,11 @@
-import arrowRight from '../assets/icons/arrow-right.svg'
 import cardIcon from '../assets/icons/card.svg'
 import packageIcon from '../assets/icons/package.svg'
 import truckIcon from '../assets/icons/truck.svg'
+import RevealArrowLink from './RevealArrowLink'
 
+// Mesma animação do "Ver mais": só o texto no repouso; a seta nasce da direita no hover/foco.
 function RulesLink() {
-  return (
-    <a href="#" className="flex items-center gap-2 text-xl font-bold">
-      Confira as regras
-      <img src={arrowRight} alt="" className="size-6" />
-    </a>
-  )
+  return <RevealArrowLink className="text-xl font-bold">Confira as regras</RevealArrowLink>
 }
 
 function Benefit({ icon, title, children, withRules = false, className = '' }) {

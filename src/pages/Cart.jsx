@@ -7,13 +7,19 @@ import CartItemRow from '../components/cart/CartItemRow'
 import OrderSummary from '../components/cart/OrderSummary'
 import SectionHeading from '../components/SectionHeading'
 import Header from '../components/header/Header'
+import { useAuth } from '../context/useAuth'
 import { useCart } from '../context/useCart'
+import { isAdminAccount } from '../services/auth'
 
 // Tela de sacola (/sacola). Duas colunas: à esquerda a lista de itens (845px); à direita o resumo da compra (411px).
 // O "(3)" do título e o "Produtos (3)" do resumo contam unidades: o resumo só conta as linhas marcadas.
 export default function Cart() {
   const { items, count, selectedCount, subtotal, discount, couponCode, setQuantity, toggleSelected, applyCoupon, removeCoupon } =
     useCart()
+  const { user } = useAuth()
+  // A conta de administrador vai até a sacola (pode montá-la), mas não compra: daqui em diante só clientes.
+  const isAdmin = Boolean(user?.email) && isAdminAccount(user.email)
+  const cannotCheckout = selectedCount === 0 || isAdmin
 
   return (
     <div className="min-h-screen overflow-x-clip bg-neutral-700">
@@ -64,18 +70,25 @@ export default function Cart() {
               onApplyCoupon={applyCoupon}
               onRemoveCoupon={removeCoupon}
             >
-              {/* Sem nada marcado não há o que comprar: o botão fica cinza, como o "Disable" do botão-base. */}
-              <Button
-                as={Link}
-                to="/checkout"
-                size="large"
-                disabled={selectedCount === 0}
-                // Link desabilitado continuaria navegável: só o visual cinza não basta.
-                onClick={(event) => selectedCount === 0 && event.preventDefault()}
-                className="w-full"
-              >
-                Finalizar compra
-              </Button>
+              {/* Sem nada marcado (ou numa conta de administrador) não há compra: o botão fica cinza, como o "Disable" do botão-base. */}
+              <div className="flex flex-col gap-3">
+                <Button
+                  as={Link}
+                  to="/checkout"
+                  size="large"
+                  disabled={cannotCheckout}
+                  // Link desabilitado continuaria navegável: só o visual cinza não basta.
+                  onClick={(event) => cannotCheckout && event.preventDefault()}
+                  className="w-full"
+                >
+                  Finalizar compra
+                </Button>
+                {isAdmin && (
+                  <p role="status" className="text-base font-semibold text-red-300">
+                    Contas de administrador não finalizam compras. Entre com uma conta de cliente para comprar.
+                  </p>
+                )}
+              </div>
             </OrderSummary>
           </aside>
         </div>

@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { findProduct } from '../data/products'
 import { CartContext } from './cartContext'
 
 // Cupons aceitos (não há backend): código em maiúsculas -> desconto em reais. O do Figma é o "15REAISOFF".
@@ -7,11 +8,46 @@ const COUPONS = { '15REAISOFF': 15 }
 // Chave da linha: o mesmo produto em volumes diferentes são linhas diferentes.
 const lineKey = (product, volume) => `${product.id}|${volume}`
 
-// Carrinho em memória (some ao recarregar a página). Cada linha é { key, product, volume, quantity, selected }:
-// `selected` é a caixinha da tela de sacola, e só as linhas marcadas entram no resumo e no checkout.
+const STORAGE_KEY = 'fysikos:cart'
+
+// O carrinho é guardado no localStorage: quem ainda não tem perfil pode adicionar itens (a sacola em si exige login) e
+// eles esperam, mesmo depois de recarregar a página ou fechar o navegador, até a pessoa criar a conta e entrar. Guardamos só
+// o essencial (id do produto, volume, quantidade, marcação e cupom) e remontamos o produto a partir do catálogo, em vez
+// de gravar o objeto inteiro. O storage pode estar bloqueado (aba anônima): aí o carrinho vive só com a página aberta.
+function readStoredCart() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY))
+    const items = (stored?.items ?? []).flatMap(({ id, volume, quantity, selected }) => {
+      const product = findProduct(id)
+      // Produto que não existe mais no catálogo é descartado em silêncio.
+      return product && quantity > 0 ? [{ key: lineKey(product, volume), product, volume, quantity, selected: selected !== false }] : []
+    })
+    return { items, couponCode: stored?.couponCode in COUPONS ? stored.couponCode : null }
+  } catch {
+    return { items: [], couponCode: null }
+  }
+}
+
+// Carrinho. Cada linha é { key, product, volume, quantity, selected }: `selected` é a caixinha da tela de sacola, e só as
+// linhas marcadas entram no resumo e no checkout.
 export function CartProvider({ children }) {
-  const [items, setItems] = useState([])
-  const [couponCode, setCouponCode] = useState(null)
+  const [initial] = useState(readStoredCart)
+  const [items, setItems] = useState(initial.items)
+  const [couponCode, setCouponCode] = useState(initial.couponCode)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          items: items.map(({ product, volume, quantity, selected }) => ({ id: product.id, volume, quantity, selected })),
+          couponCode,
+        }),
+      )
+    } catch {
+      // sem storage: ignora
+    }
+  }, [items, couponCode])
 
   const value = useMemo(() => {
     const selectedItems = items.filter((item) => item.selected)

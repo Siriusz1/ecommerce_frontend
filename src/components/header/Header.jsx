@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import bagIcon from '../../assets/icons/bag-nav.svg'
 import heartIcon from '../../assets/icons/heart-nav.svg'
 import searchIcon from '../../assets/icons/search.svg'
@@ -7,11 +7,17 @@ import logo from '../../assets/images/logo.png'
 import { useAuth } from '../../context/useAuth'
 import { useCart } from '../../context/useCart'
 import { useFavorites } from '../../context/useFavorites'
+import { TYPES } from '../../data/products'
 import SearchBox from './SearchBox'
 import UserMenu from './UserMenu'
 
 const HEADER_HEIGHT = 72
-const navItems = ['Limpeza', 'Tratamento e Nutrição', 'Hidratação', 'Tonificação', 'Proteção']
+// Sublinhado do menu: um traço de 2px (feito com `background`) que cresce da esquerda para a direita no hover/foco e
+// recua para a esquerda ao sair. Fica sempre cheio na categoria da busca aberta. `currentColor` = a cor do texto.
+const NAV_UNDERLINE =
+  'pb-1 [background-image:linear-gradient(currentColor,currentColor)] [background-position:left_bottom] [background-repeat:no-repeat] transition-[background-size] duration-300 ease-out motion-reduce:transition-none'
+const NAV_UNDERLINE_OFF = '[background-size:0%_2px] hover:[background-size:100%_2px] focus-visible:[background-size:100%_2px]'
+const NAV_UNDERLINE_ON = '[background-size:100%_2px]'
 
 // Vira `true` quando a base do hero chega à altura da barra, ou seja, no instante em que a barra
 // começa a ficar sobre o fundo claro da página. `requestAnimationFrame` limita o cálculo a 1x por frame.
@@ -66,6 +72,14 @@ export default function Header({ heroRef, minimal = false }) {
   const { count: cartCount } = useCart()
   const { count: favoritesCount } = useFavorites()
   const isPastHero = useIsPastHero(heroRef)
+  // `pulse` sobe a cada vez que a quantidade AUMENTA (e só então): é a `key` que reinicia a animação da bolinha. Ajustar
+  // o estado durante a renderização (e não num efeito) evita um quadro com o valor antigo.
+  const [previousCount, setPreviousCount] = useState(cartCount)
+  const [pulse, setPulse] = useState(0)
+  if (cartCount !== previousCount) {
+    setPreviousCount(cartCount)
+    if (cartCount > previousCount) setPulse((current) => current + 1)
+  }
   const isTransparent = Boolean(heroRef) && !isPastHero
 
   const [searchOpen, setSearchOpen] = useState(false)
@@ -73,6 +87,9 @@ export default function Header({ heroRef, minimal = false }) {
   const [searchClosing, setSearchClosing] = useState(false)
   const searchButtonRef = useRef(null)
   const navHidden = searchOpen && !searchClosing
+  // A categoria do menu que está filtrando a busca aberta (para marcar o item com o traço fixo).
+  const { pathname, search } = useLocation()
+  const activeTypes = pathname === '/busca' ? new URLSearchParams(search).getAll('tipo') : []
 
   const closeSearch = useCallback((restoreFocus = false) => {
     setSearchOpen(false)
@@ -117,18 +134,22 @@ export default function Header({ heroRef, minimal = false }) {
             navHidden ? 'opacity-0' : 'opacity-100'
           }`}
         >
-          {navItems.map((item) => (
-            // O sublinhado só aparece no hover; a borda transparente reserva o espaço para o item não pular.
-            <a
-              key={item}
-              href="#"
-              className="border-b-2 border-transparent pb-0.5 text-base font-semibold text-neutral-700 transition-colors hover:border-neutral-700"
-            >
-              {item}
-            </a>
-          ))}
+          {/* Cada categoria leva à busca filtrada por ela (/busca?tipo=...). */}
+          {TYPES.map((item) => {
+            const active = activeTypes.includes(item)
+            return (
+              <Link
+                key={item}
+                to={`/busca?tipo=${encodeURIComponent(item)}`}
+                aria-current={active ? 'page' : undefined}
+                className={`text-base font-semibold text-neutral-700 ${NAV_UNDERLINE} ${active ? NAV_UNDERLINE_ON : NAV_UNDERLINE_OFF}`}
+              >
+                {item}
+              </Link>
+            )
+          })}
         </nav>
-        {searchOpen && <SearchBox onClose={closeSearch} onClosing={() => setSearchClosing(true)} />}
+        {searchOpen && <SearchBox anchorRef={searchButtonRef} onClose={closeSearch} onClosing={() => setSearchClosing(true)} />}
 
         <div className="flex shrink-0 items-center gap-2">
           {/* `invisible` (e não removido) mantém o lugar da lupa: a barra de busca nasce exatamente em cima dela. */}
@@ -152,7 +173,24 @@ export default function Header({ heroRef, minimal = false }) {
               aria-label={cartCount > 0 ? `Sacola, ${cartCount} ${cartCount === 1 ? 'item' : 'itens'}` : 'Sacola'}
               className="flex size-11 items-center justify-center"
             >
-              <img src={bagIcon} alt="" className="size-6" />
+              {/* `pulse > 0`: nada anima quando a página abre com itens guardados; só quando entram itens novos. */}
+              <span key={pulse} className={`relative ${pulse > 0 ? 'animate-bag-bump motion-reduce:animate-none' : ''}`}>
+                <img src={bagIcon} alt="" className="size-6" />
+                {cartCount > 0 && (
+                  <span
+                    key={pulse}
+                    aria-hidden
+                    // Círculo de 18px (mínimo) no canto superior direito da sacola, como no Figma (x=22 e y=6 dentro da caixa de
+                    // 44px do botão; o ícone começa em 10,10, daí o 12px/-4px). Com 2+ dígitos a bolinha alarga. Só existe quando
+                    // há itens na sacola.
+                    className={`absolute left-3 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-badge px-1 text-[11px] font-medium leading-none text-field ${
+                      pulse > 0 ? 'animate-badge-pop motion-reduce:animate-none' : ''
+                    }`}
+                  >
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
+              </span>
             </Link>
           </div>
         </div>

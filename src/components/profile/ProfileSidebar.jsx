@@ -5,14 +5,12 @@ import logout from '../../assets/icons/profile/logout.svg'
 import packageActive from '../../assets/icons/profile/package-active.svg'
 import packageMuted from '../../assets/icons/profile/package-muted.svg'
 import pinMuted from '../../assets/icons/profile/pin-muted.svg'
-import trash from '../../assets/icons/profile/trash.svg'
 import userActive from '../../assets/icons/profile/user-active.svg'
 import userMuted from '../../assets/icons/profile/user-muted.svg'
 import { useAuth } from '../../context/useAuth'
-import { deleteAccount } from '../../services/auth'
 
 const itemClass = 'flex h-9 w-full items-center gap-3 px-3 text-xl font-medium'
-// Os itens do menu têm 8px de folga embaixo (o texto sobe 4px); "Sair da conta" e "Excluir conta" são centrados na caixa.
+// Os itens do menu têm 8px de folga embaixo (o texto sobe 4px); "Sair da conta" é centrado na caixa.
 const navItemClass = `${itemClass} pb-2`
 
 // Item ativo = barra de 2px à esquerda e cores escuras; os inativos ficam em cinza.
@@ -47,18 +45,10 @@ function SoonItem({ icon, children }) {
 }
 
 export default function ProfileSidebar() {
-  const { user, signOut } = useAuth()
-
-  // Limpar a sessão basta: o ProfileLayout exige login e, sem usuário, redireciona para /login.
-  const handleDeleteAccount = async () => {
-    // O Figma não desenha a confirmação; o confirm nativo evita apagar a conta com um clique sem querer.
-    if (!window.confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.')) return
-    await deleteAccount({ email: user.email })
-    signOut()
-  }
+  const { signOut } = useAuth()
 
   return (
-    <aside className="flex flex-col justify-between">
+    <aside>
       <div>
         <nav aria-label="Perfil" className="flex flex-col gap-5">
           <SidebarLink to="/perfil" end icon={userMuted} activeIcon={userActive}>
@@ -76,11 +66,6 @@ export default function ProfileSidebar() {
           Sair da conta
         </button>
       </div>
-
-      <button type="button" onClick={handleDeleteAccount} className={`${itemClass} rounded-card text-error`}>
-        <img src={trash} alt="" className="size-5" />
-        Excluir conta
-      </button>
     </aside>
   )
 }

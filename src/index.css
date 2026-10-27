@@ -24,6 +24,9 @@
   --color-red-100: #2e1715;
   --color-red-600: #5a2d29; /* estrelas de avaliação e link de e-mail dos termos */
   --color-red-800: #351a18; /* fundo da navbar (Red/800) */
+  --color-badge: #4a4620; /* bolinha com a quantidade de itens na sacola da navbar (Green/800) */
+  --color-placeholder: #75705a; /* texto de dica (placeholder) dos campos; o login e o cadastro mantêm o deles */
+  --color-muted: #7a6460; /* contagem de avaliações do card de produto em hover ("ink/muted") */
   --color-link: #8a4b45; /* links da trilha de navegação e "Editar endereço" (o "Red/400" atual do Figma) */
   --color-red-200: #3b1e1b;
   --color-red-300: #472421;
@@ -58,6 +61,14 @@
   --color-panel: #f7f5ea; /* fundo do painel que abre sob a barra de senha/e-mail */
   --color-ring: #e9e6cc; /* contorno de 3px em volta da barra + painel abertos */
   --color-disabled: #d9d6bf; /* fundo do botão "Salvar alterações" desabilitado */
+
+  /* Painel administrativo. */
+  --color-section: #f4f2e9; /* fundo das tabelas e dos blocos de formulário ("bg/section") */
+  --color-danger-bg: #f6eeec; /* cartão "Sem estoque" e situação "Cancelado" ("Red/50") */
+  --color-danger-border: #d4b5b0; /* borda do cartão "Sem estoque" ("Red/200" do Figma) */
+  --color-wait-bg: #fff2cf; /* situação "Aguardando" */
+  --color-wait: #806329; /* texto da situação "Aguardando" */
+  --color-photo-border: #b9b37a; /* borda tracejada dos espaços de foto */
 
   /* O "foco" dos campos do perfil: o mesmo contorno de 3px do formulário de senha aberto (classe `shadow-ring`). */
   --shadow-ring: 0 0 0 3px var(--color-ring);
@@ -142,6 +153,10 @@
       clip-path: inset(0 0 0 0);
     }
   }
+
+  /* Fundo escurecido atrás da busca (SearchBox): entra e sai com ela. */
+  --animate-search-dim-in: search-fade-in 250ms ease-out backwards;
+  --animate-search-dim-out: search-fade-out 220ms ease-in both;
 
   --animate-search-row: search-row-in 240ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
   @keyframes search-row-in {
@@ -492,6 +507,128 @@
   --container-page: 1440px;
   --container-content: 1280px;
   --container-carousel: 1370px;
+}
+
+/*
+ * Bolinha de quantidade na sacola da navbar. O Figma só desenha o estado parado (círculo de 12px com o número); a
+ * animação é nossa e toca quando entram itens novos: a bolinha "pula" (nasce pequena, passa do tamanho e assenta, com a
+ * curva de mola) e o ícone da sacola dá um pequeno impulso junto, como quem recebeu o item.
+ */
+@theme {
+  --animate-badge-pop: badge-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  @keyframes badge-pop {
+    from {
+      transform: scale(0.2);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+  --animate-bag-bump: bag-bump 520ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  @keyframes bag-bump {
+    0% {
+      transform: scale(1);
+    }
+    30% {
+      transform: scale(1.18, 0.9);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+/* Modal de confirmação (ConfirmDialog): o cartão sobe e aparece, o fundo escuro esmaece. */
+@theme {
+  --animate-modal-in: modal-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  --animate-modal-backdrop: modal-backdrop 220ms ease-out;
+  @keyframes modal-backdrop {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/*
+ * Frasco da tela "Pedido realizado!" (OrderBottle): o desenho se monta peça por peça, em ~1,6s. O corpo sobe do fundo,
+ * o reflexo e o rótulo aparecem nele, a tampa dourada e o conta-gotas descem encaixando, e por fim o selo verde
+ * estoura e o visto é "escrito" (traço). `backwards` mantém cada peça escondida até chegar a vez dela.
+ */
+@theme {
+  --animate-bottle-body: bottle-body 560ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  @keyframes bottle-body {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scaleY(0.5);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scaleY(1);
+    }
+  }
+  --animate-bottle-fade: bottle-fade 300ms ease-out 420ms backwards;
+  @keyframes bottle-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  --animate-bottle-label: bottle-label 340ms cubic-bezier(0.34, 1.56, 0.64, 1) 480ms backwards;
+  @keyframes bottle-label {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+  }
+  --animate-bottle-label-line: bottle-label-line 260ms ease-out 760ms backwards;
+  @keyframes bottle-label-line {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  --animate-bottle-collar: bottle-drop 320ms cubic-bezier(0.34, 1.3, 0.64, 1) 620ms backwards;
+  --animate-bottle-dropper: bottle-drop 380ms cubic-bezier(0.34, 1.3, 0.64, 1) 780ms backwards;
+  @keyframes bottle-drop {
+    from {
+      opacity: 0;
+      transform: translateY(-16px);
+    }
+  }
+  --animate-bottle-badge: bottle-badge 420ms cubic-bezier(0.34, 1.56, 0.64, 1) 1050ms backwards;
+  @keyframes bottle-badge {
+    from {
+      opacity: 0;
+      transform: scale(0);
+    }
+  }
+  --animate-bottle-check: bottle-check 360ms ease-out 1350ms backwards;
+  @keyframes bottle-check {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+}
+
+/* Painel administrativo: com ou sem rolagem, a página tem a mesma largura (senão o menu lateral "anda" alguns pixels). */
+:root:has(.admin-shell) {
+  scrollbar-gutter: stable;
+}
+
+/* Com o modal aberto a página de trás não rola (o <dialog> nativo não faz isso sozinho). */
+body:has(dialog[open]) {
+  overflow: hidden;
 }
 
 /*

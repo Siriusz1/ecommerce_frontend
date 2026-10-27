@@ -30,7 +30,7 @@ export default function ProductPage() {
             items={[
               { label: 'Página Inicial', to: '/' },
               // Ainda não existe tela de categoria: o link leva para a busca já filtrada por ela.
-              { label: product.page.category, to: `/busca?categoria=${encodeURIComponent(product.page.category)}` },
+              { label: product.page.category, to: `/busca?area=${encodeURIComponent(product.page.category)}` },
               { label: product.name },
             ]}
           />

@@ -20,8 +20,7 @@ export default function ProfileLayout() {
       <main className="mx-auto max-w-content pb-[51px] pt-[92px]">
         <Breadcrumb items={[{ label: 'Página Inicial', to: '/' }, { label: 'Perfil' }]} />
         <h1 className="mt-3 font-heading text-heading font-semibold">Perfil</h1>
-        {/* items-stretch: o menu ocupa a altura do conteúdo para "Excluir conta" ficar alinhado ao fim dele. */}
-        <div className="mt-11 grid grid-cols-[217px_minmax(0,1fr)] items-stretch gap-x-[109px]">
+        <div className="mt-11 grid grid-cols-[217px_minmax(0,1fr)] items-start gap-x-[109px]">
           <ProfileSidebar />
           <Outlet />
         </div>

@@ -58,8 +58,15 @@ export const duo = repeat(botanicaRenewal, 2, 'duo')
 // ---- Catálogo da busca (80 itens de exemplo) ----
 // O Figma mostra "80 resultados" e o mesmo produto em todos os cards. Para os filtros terem o que filtrar,
 // o nome continua sendo o do Figma, mas categoria, tipo de pele, nota e preço variam de forma previsível.
-export const CATEGORIES = ['Rosto', 'Cabelo', 'Unhas', 'Corpo']
-export const SKIN_TYPES = ['Seca', 'Oleosa', 'Mista', 'Normal', 'Sensível']
+// "Área de aplicação" do filtro (onde o produto é usado). Rosto e Corpo têm "Tipo de pele"; Cabelo tem "Tipo de cabelo".
+export const CATEGORIES = ['Corpo', 'Rosto', 'Cabelo']
+export const SKIN_TYPES = ['Seca', 'Oleosa', 'Mista', 'Normal']
+export const HAIR_TYPES = ['Liso', 'Ondulado', 'Cacheado', 'Crespo']
+// Quais áreas liberam cada filtro de tipo.
+export const SKIN_AREAS = ['Rosto', 'Corpo']
+export const HAIR_AREAS = ['Cabelo']
+// A "Categoria" do filtro: as categorias do menu da navbar. Clicar numa leva à busca (/busca?tipo=Hidratação), filtrada por ela.
+export const TYPES = ['Limpeza', 'Tratamento e Nutrição', 'Hidratação', 'Tonificação', 'Proteção']
 // Faixa de preço dos campos Mínimo/Máximo do filtro (os valores que o Figma desenha).
 export const PRICE_BOUNDS = { min: 0, max: 500 }
 
@@ -77,7 +84,12 @@ export const searchCatalog = Array.from({ length: 80 }, (_, index) => {
     id: `${botanicaRenewal.slug}-busca-${index + 1}`,
     category,
     // O tipo de pele muda a cada 4 itens e a categoria a cada item: assim todas as combinações existem.
-    skinType: SKIN_TYPES[Math.floor(index / CATEGORIES.length) % SKIN_TYPES.length],
+    // Cada produto tem o tipo que combina com a sua área: pele (rosto, corpo) ou cabelo.
+    ...(category === 'Cabelo'
+      ? { hairType: HAIR_TYPES[Math.floor(index / CATEGORIES.length) % HAIR_TYPES.length] }
+      : { skinType: SKIN_TYPES[Math.floor(index / CATEGORIES.length) % SKIN_TYPES.length] }),
+    // 5 categorias do menu contra 4 de região: o índice avança nas duas, então todas as combinações aparecem.
+    type: TYPES[index % TYPES.length],
     price: SEARCH_PRICES[(index * 3) % SEARCH_PRICES.length],
     rating: SEARCH_RATINGS[index % SEARCH_RATINGS.length],
     keywords: searchKeywords(index),

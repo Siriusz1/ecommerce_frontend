@@ -13,7 +13,8 @@ const EMPTY_PASSWORDS = { current: '', next: '', confirm: '' }
 
 // "Dados de acesso": e-mail e senha funcionam do mesmo jeito. O lápis abre um painel com os campos da troca;
 // salvar valida, confirma a ação com a senha atual (no serviço) e fecha o painel.
-export default function AccessDataCard({ profile, onProfileChange }) {
+// `emailLocked`: o e-mail só se mostra (a conta de administrador muda apenas de senha).
+export default function AccessDataCard({ profile, onProfileChange, emailLocked = false }) {
   const { user, updateUser, signOut } = useAuth()
   const [status, setStatus] = useState('')
 
@@ -118,7 +119,9 @@ export default function AccessDataCard({ profile, onProfileChange }) {
           <ExpandableField
             id="email"
             label="E-mail"
-            display={maskEmail(profile.email)}
+            display={emailLocked ? profile.email : maskEmail(profile.email)}
+            locked={emailLocked}
+            lockedHint="O e-mail do administrador não pode ser alterado."
             open={emailOpen}
             onToggle={toggleEmail}
             openLabel="Cancelar troca de e-mail"
@@ -154,7 +157,7 @@ export default function AccessDataCard({ profile, onProfileChange }) {
                 onChange={(event) => setEmailField('password', event.target.value)}
               />
             </div>
-            <SaveButton />
+            <SaveButton disabled={!Object.values(emails).every(Boolean)} />
           </ExpandableField>
         </form>
 
@@ -199,7 +202,7 @@ export default function AccessDataCard({ profile, onProfileChange }) {
                 onChange={(event) => setPassword('confirm', event.target.value)}
               />
             </div>
-            <SaveButton />
+            <SaveButton disabled={!Object.values(passwords).every(Boolean)} />
           </ExpandableField>
         </form>
       </div>

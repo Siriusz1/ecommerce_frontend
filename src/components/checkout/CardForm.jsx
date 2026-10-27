@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import saveIcon from '../../assets/icons/profile/save-white.svg'
 import { formatCardNumber, formatExpiry, onlyDigits } from '../../utils/format'
 import { cardBrand, validateCard } from '../../utils/checkoutValidation'
-import Button from '../Button'
+import SaveButton from '../profile/SaveButton'
 import TextField from './TextField'
 
 const EMPTY = { number: '', holder: '', expiry: '', cvv: '' }
@@ -30,8 +29,12 @@ export default function CardForm({ open, onSubmit }) {
     },
   })
 
+  // O botão só libera com os quatro campos preenchidos.
+  const canSave = Object.values(values).every((value) => value.trim())
+
   const handleSubmit = (event) => {
     event.preventDefault()
+    if (!canSave) return
     const found = validateCard(values)
     setErrors(found)
     if (Object.keys(found).length > 0) return
@@ -50,36 +53,32 @@ export default function CardForm({ open, onSubmit }) {
       onSubmit={handleSubmit}
       noValidate
       aria-label="Novo cartão"
-      className="flex flex-col items-end gap-6 rounded-card border border-card-border bg-card p-6"
+      className="flex flex-col items-end gap-6 rounded-card border-2 border-card-border bg-card p-6"
     >
       <div className="flex w-full flex-col gap-6">
         <h3 className="font-heading text-2xl font-semibold text-red-300">Novo cartão</h3>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <TextField
             ref={firstFieldRef}
             label="Número do cartão"
-            placeholder="0000 0000 0000 0000"
             inputMode="numeric"
             autoComplete="cc-number"
             {...bind('number', formatCardNumber)}
           />
           <TextField
             label="Nome impresso no cartão"
-            placeholder="Como está no cartão"
             autoComplete="cc-name"
             {...bind('holder')}
           />
           <div className="grid grid-cols-2 gap-3">
             <TextField
               label="Validade"
-              placeholder="MM/AA"
               inputMode="numeric"
               autoComplete="cc-exp"
               {...bind('expiry', formatExpiry)}
             />
             <TextField
               label="Código de segurança"
-              placeholder="123"
               inputMode="numeric"
               maxLength={4}
               autoComplete="cc-csc"
@@ -88,9 +87,9 @@ export default function CardForm({ open, onSubmit }) {
           </div>
         </div>
       </div>
-      <Button type="submit" size="large" icon={saveIcon} className="w-[367px] max-w-full">
+      <SaveButton size="large" disabled={!canSave} className="w-[367px] max-w-full">
         Adicionar cartão
-      </Button>
+      </SaveButton>
     </form>
   )
 }

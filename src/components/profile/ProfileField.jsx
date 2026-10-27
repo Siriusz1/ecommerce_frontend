@@ -55,7 +55,7 @@ export default function ProfileField({
             value={editing ? value : display}
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? messageId : undefined}
-            className="min-w-0 flex-1 cursor-[inherit] bg-transparent text-xl font-semibold outline-none placeholder:text-neutral-300"
+            className="min-w-0 flex-1 cursor-[inherit] bg-transparent text-xl font-semibold outline-none placeholder:text-placeholder"
             {...inputProps}
           />
           {editable && (

@@ -1,4 +1,4 @@
-import { CATEGORIES, PRICE_BOUNDS, SKIN_TYPES } from '../data/products'
+import { CATEGORIES, HAIR_AREAS, HAIR_TYPES, PRICE_BOUNDS, SKIN_AREAS, SKIN_TYPES, TYPES } from '../data/products'
 
 export const PAGE_SIZE = 16
 
@@ -27,10 +27,17 @@ export function readFilters(params) {
   const rating = Math.round(number('estrelas', 0))
   const sort = params.get('ordem')
 
+  const areas = CATEGORIES.filter((area) => params.getAll('area').includes(area))
+  const hasArea = (list) => areas.some((area) => list.includes(area))
+
   return {
     query: (params.get('q') ?? '').trim(),
-    categories: CATEGORIES.filter((category) => params.getAll('categoria').includes(category)),
-    skinTypes: SKIN_TYPES.filter((type) => params.getAll('pele').includes(type)),
+    types: TYPES.filter((type) => params.getAll('tipo').includes(type)), // "Categoria": as do menu da navbar
+    categories: areas, // "Área de aplicação"
+    // Tipo de pele / de cabelo só existem enquanto a área correspondente está marcada: um valor solto no endereço (de uma
+    // área já desmarcada) é ignorado em vez de filtrar às escondidas.
+    skinTypes: hasArea(SKIN_AREAS) ? SKIN_TYPES.filter((type) => params.getAll('pele').includes(type)) : [],
+    hairTypes: hasArea(HAIR_AREAS) ? HAIR_TYPES.filter((type) => params.getAll('cabelo').includes(type)) : [],
     minRating: rating >= 1 && rating <= 5 ? rating : 0,
     minPrice: Math.min(Math.max(number('min', PRICE_BOUNDS.min), PRICE_BOUNDS.min), PRICE_BOUNDS.max),
     maxPrice: Math.min(Math.max(number('max', PRICE_BOUNDS.max), PRICE_BOUNDS.min), PRICE_BOUNDS.max),
@@ -60,11 +67,15 @@ export function searchProducts(products, filters) {
   const matches = products.filter((product) => {
     // Cada palavra digitada precisa aparecer no nome, na descrição, na categoria ou nas palavras-chave.
     const haystack = normalize(
-      [product.name, product.description, product.category, product.skinType, ...(product.keywords ?? [])].join(' '),
+      [product.name, product.description, product.category, product.type, product.skinType, product.hairType, ...(product.keywords ?? [])].join(' '),
     )
     if (!terms.every((term) => haystack.includes(term))) return false
     if (filters.categories.length > 0 && !filters.categories.includes(product.category)) return false
-    if (filters.skinTypes.length > 0 && !filters.skinTypes.includes(product.skinType)) return false
+    // Cada tipo restringe só os produtos a que se aplica (cabelo ou pele): marcar "Cabelo" e "Rosto" com "Pele seca"
+    // mantém todo o cabelo e só o rosto de pele seca.
+    if (product.hairType && filters.hairTypes.length > 0 && !filters.hairTypes.includes(product.hairType)) return false
+    if (product.skinType && filters.skinTypes.length > 0 && !filters.skinTypes.includes(product.skinType)) return false
+    if (filters.types.length > 0 && !filters.types.includes(product.type)) return false
     if (product.rating < filters.minRating) return false
     return product.price >= filters.minPrice && product.price <= filters.maxPrice
   })
@@ -76,11 +87,11 @@ export function searchProducts(products, filters) {
   return matches
 }
 
-// Números que a paginação mostra: todos, se forem poucos; senão o primeiro, os vizinhos da página atual e o
-// último, com reticências (null) nos buracos. Ex.: 1 ... 4 5 6 ... 50.
+// Números que a paginação mostra (Figma): na 1ª página, "1 2 3 ... 50"; nas demais, a primeira, a atual, a SEGUINTE e a
+// última, com reticências (null) em todo buraco: "1 ... 3 4 ... 50". Na página 2 isso dá "1 2 3 ... 50"; perto do fim,
+// "1 ... 49 50". Com poucas páginas o mesmo padrão vale (sem buracos, não há reticências).
 export function pageNumbers(current, total) {
-  if (total <= 5) return Array.from({ length: total }, (_, index) => index + 1)
-  const wanted = new Set([1, 2, 3, total, current - 1, current, current + 1])
+  const wanted = new Set(current === 1 ? [1, 2, 3, total] : [1, current, current + 1, total])
   const pages = [...wanted].filter((page) => page >= 1 && page <= total).sort((a, b) => a - b)
   return pages.flatMap((page, index) => (index > 0 && page - pages[index - 1] > 1 ? [null, page] : [page]))
 }

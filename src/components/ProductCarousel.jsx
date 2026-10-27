@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import arrowRight from '../assets/icons/arrow-right.svg'
 import chevronLeft from '../assets/icons/chevron-left.svg'
 import chevronRight from '../assets/icons/chevron-right.svg'
 import ProductCard from './ProductCard'
+import RevealArrowLink from './RevealArrowLink'
 
 function ChevronButton({ icon, label, disabled, onClick }) {
   return (
@@ -53,24 +53,8 @@ export default function ProductCarousel({ title, products }) {
       {/* relative z-10: fica acima do respiro invisível (pt-12) do trilho abaixo, para o link "Ver mais" continuar clicável. */}
       <div className="relative z-10 mx-auto flex w-full max-w-[1281px] items-end justify-between">
         <h2 className="font-heading text-heading font-semibold">{title}</h2>
-        {/*
-          No repouso (Figma) é só o texto. No hover/foco a seta nasce de dentro da borda direita: a janela
-          `overflow-clip` abre de 0 a 24px e a seta fica colada no fim dela (justify-end), então a PONTA aparece primeiro e
-          depois o corpo, como nos quadros de 8px -> 21px -> 24px; junto, o espaço de 12px entre texto e seta abre.
-          O link cresce para a esquerda (ele está encostado na borda direita), por isso o texto desliza 36px: é o que o
-          Figma desenha. A seta ainda desliza 8px de fora para dentro para o movimento parecer mais fluido.
-          Sem hover (celular) a seta não aparece, como no repouso do desenho.
-        */}
-        <a href="#" className="group flex items-center justify-center pb-[5px] text-xl font-semibold">
-          Ver mais
-          <span className="flex w-0 items-center justify-end overflow-clip transition-[width,margin] duration-400 ease-reveal group-hover:ml-3 group-hover:w-6 group-focus-visible:ml-3 group-focus-visible:w-6 motion-reduce:transition-none">
-            <img
-              src={arrowRight}
-              alt=""
-              className="size-6 max-w-none shrink-0 translate-x-2 opacity-0 transition-[transform,opacity] duration-400 ease-reveal group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100 motion-reduce:transition-none"
-            />
-          </span>
-        </a>
+        {/* A animação da seta (e a explicação dela) está em RevealArrowLink. */}
+        <RevealArrowLink className="justify-center pb-[5px] text-xl font-semibold">Ver mais</RevealArrowLink>
       </div>
 
       <div className="flex items-center">

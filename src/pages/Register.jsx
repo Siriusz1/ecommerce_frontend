@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import PasswordField from '../components/PasswordField'
 import TextField from '../components/TextField'
 import AuthLayout from '../components/auth/AuthLayout'
 import AuthLinks from '../components/auth/AuthLinks'
+import AccountNotice from '../components/auth/AccountNotice'
 import PrimaryButton from '../components/auth/PrimaryButton'
+import { useAuth } from '../context/useAuth'
 import { register } from '../services/auth'
 import { MIN_PASSWORD_LENGTH, hasFullName, messages, validateEmail } from '../utils/authValidation'
 
@@ -13,6 +15,8 @@ const FIELD_ORDER = ['name', 'email', 'password', 'confirmPassword']
 
 export default function Register() {
   const navigate = useNavigate()
+  const { state } = useLocation()
+  const { signIn } = useAuth()
   const [errors, setErrors] = useState({})
 
   const clearError = (field) => setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current))
@@ -46,12 +50,15 @@ export default function Register() {
       form.elements.email.focus()
       return
     }
-    // Ainda não há sessão: depois de cadastrar, o usuário entra pela tela de login.
-    navigate('/login')
+    // Conta criada = já entrou (sem passar pelo login) e volta para a última tela de antes de começar o cadastro/login
+    // (`from`: o botão "Login" da navbar e a barreira do checkout o informam); sem isso, a Home.
+    signIn({ name: name.trim(), email })
+    navigate(state?.from ?? '/', { replace: true })
   }
 
   return (
     <AuthLayout>
+      {state?.needsAccount && <AccountNotice />}
       <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-10">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4">

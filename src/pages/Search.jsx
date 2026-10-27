@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import heroPhoto from '../assets/images/hero-photo.jpg'
 import bannerFade from '../assets/images/search/banner-fade.png'
+import emptyLeaves from '../assets/images/search/empty-leaves.svg'
+import bannerVideo from '../assets/videos/search-banner.webm'
 import Breadcrumb from '../components/Breadcrumb'
 import Footer from '../components/Footer'
 import Header from '../components/header/Header'
@@ -11,13 +14,31 @@ import SortSelect from '../components/search/SortSelect'
 import { searchCatalog } from '../data/products'
 import { PAGE_SIZE, buildParams, readFilters, searchProducts } from '../utils/search'
 
-// Faixa de foto de 358px no topo (a navbar fixa fica por cima dela). É a mesma foto do banner da Home, mais baixa e
-// recortada: no Figma a imagem tem 224,5% da altura da faixa e sobe 53% dela, o que enquadra o frasco.
+// Faixa de 358px no topo. Fica FIXA atrás da página: ao rolar, os resultados sobem e passam por cima dela (ver a folha
+// `z-10` em Search). Por baixo vai a foto do banner da Home, mais baixa e recortada (no Figma a imagem tem 224,5% da
+// altura da faixa e sobe 53% dela, o que enquadra o frasco); por cima dela, o vídeo (assets/videos/search-banner.webm: a
+// mesma cena com a câmera se aproximando devagar, folhas e poeira de luz), que entra com um fade quando está pronto. Quem
+// prefere menos movimento fica só com a foto. O degradê escuro (36%) é o mesmo da Home.
 function SearchBanner() {
+  const [videoReady, setVideoReady] = useState(false)
+  const [reduceMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+
   return (
-    <div aria-hidden className="absolute inset-x-0 top-0 h-[358px] overflow-hidden">
+    <div aria-hidden className="fixed inset-x-0 top-0 z-0 h-[358px] overflow-hidden">
       <img src={heroPhoto} alt="" className="absolute left-0 top-[-53.07%] h-[224.5%] w-full max-w-none object-cover" />
-      {/* O mesmo degradê escuro da Home (36%), na altura da faixa. */}
+      {!reduceMotion && (
+        <video
+          src={bannerVideo}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          tabIndex={-1}
+          onCanPlay={() => setVideoReady(true)}
+          className={`absolute inset-0 size-full object-cover transition-opacity duration-700 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+        />
+      )}
       <img src={bannerFade} alt="" className="absolute inset-0 size-full object-fill opacity-36" />
     </div>
   )
@@ -38,6 +59,8 @@ export default function Search() {
   const page = Math.min(filters.page, totalPages)
   const start = (page - 1) * PAGE_SIZE
   const visible = results.slice(start, start + PAGE_SIZE)
+  // O que a pessoa pediu: a palavra digitada ou, vindo do menu da navbar, a categoria clicada.
+  const term = filters.query || filters.types.join(', ')
 
   const hrefFor = (number) => `?${buildParams(params, { pagina: number === 1 ? null : number })}`
 
@@ -47,19 +70,24 @@ export default function Search() {
       <Header />
       <SearchBanner />
 
-      {/* pt-[378px]: 358px de banner + 20px de respiro até a trilha (y=378). */}
-      <main className="relative mx-auto max-w-content pb-[83px] pt-[378px]">
-        <Breadcrumb className="mb-3" items={[{ label: 'Página Inicial', to: '/' }, { label: 'Busca' }]} />
+      {/* A folha (z-10, fundo da página) começa abaixo do banner e sobe por cima dele quando a página rola. pt-5: os 20px de
+          respiro entre a faixa (358px) e a trilha (y=378). */}
+      <div className="relative z-10 mt-[358px] bg-neutral-700">
+      <main className="mx-auto max-w-content pb-[83px] pt-5">
+        <Breadcrumb className="mb-3" items={[{ label: 'Página Inicial', to: '/' }, { label: term ? `“${term}”` : 'Busca' }]} />
 
         <div className="grid grid-cols-[411px_minmax(0,1fr)] items-start gap-x-6">
-          <FiltersPanel filters={filters} onChange={update} />
+          {/* No Figma a coluna de filtros começa em y=428, 18px abaixo do bloco do título (y=410). */}
+          <div className="pt-[18px]">
+            <FiltersPanel filters={filters} onChange={update} />
+          </div>
 
           <section aria-label="Resultados" className="flex flex-col">
             <div className="flex items-center justify-between">
               {/* p-2.5 + gap de 10px: o respiro do bloco de título do Figma. */}
               <div className="flex flex-col gap-2.5 p-2.5 text-red-300">
                 <h1 className="text-xl font-bold">
-                  {filters.query ? `Resultados de busca para “${filters.query}”` : 'Resultados de busca'}
+                  {term ? `Resultados de busca para “${term}”` : 'Resultados de busca'}
                 </h1>
                 {/* role="status": o leitor de tela anuncia a nova contagem quando um filtro muda. */}
                 <p role="status" className="text-base font-medium opacity-60">
@@ -80,17 +108,26 @@ export default function Search() {
                 ))}
               </ul>
             ) : (
-              // O Figma não desenha o estado sem resultados.
-              <div className="mt-2 flex flex-col items-start gap-4 rounded-card border-2 border-neutral-500 p-8">
-                <p className="text-xl font-semibold">Não encontramos produtos com esses filtros.</p>
-                <p className="text-base">Tente outra palavra ou remova alguns filtros.</p>
-                <button
-                  type="button"
-                  onClick={() => update({ q: null, categoria: null, estrelas: null, pele: null, min: null, max: null })}
-                  className="text-xl font-semibold underline"
-                >
-                  Limpar busca e filtros
-                </button>
+              // Sem resultados (Figma): folhas, uma frase em destaque e um convite para tentar de novo. Tudo fica 87px
+              // à direita da coluna; as folhas (caixa de 382x269, já inclinadas no desenho) sobem por cima do título.
+              <div className="-mt-[17px] pl-[87px]">
+                <div className="-ml-[53px] -mb-[92px] flex h-[269.328px] w-[381.594px] items-center justify-center" aria-hidden>
+                  <img src={emptyLeaves} alt="" className="h-[188.459px] w-[345.263px] max-w-none rotate-[14.58deg]" />
+                </div>
+                <h2 className="relative w-[681px] font-heading text-[2.5rem] font-semibold leading-[normal] text-red-300">
+                  Procuramos em todas as prateleiras, mas não encontramos nada{' '}
+                  {term ? (
+                    <>
+                      para <span className="text-link">“{term}”</span>
+                    </>
+                  ) : (
+                    'com esses filtros'
+                  )}
+                  .
+                </h2>
+                <p className="mt-4 w-[757px] text-xl font-semibold text-red-300">
+                  Que tal tentar de novo ou dar uma olhada no que está em alta por aqui?
+                </p>
               </div>
             )}
 
@@ -102,6 +139,7 @@ export default function Search() {
       </main>
 
       <Footer />
+      </div>
     </div>
   )
 }

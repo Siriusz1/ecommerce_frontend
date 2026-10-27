@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import chevronDown from '../../assets/icons/chevron-down.svg'
 import userIcon from '../../assets/icons/user.svg'
 
@@ -10,6 +10,7 @@ const iconBox = 'flex size-11 items-center justify-center'
 export default function UserMenu({ user, onSignOut }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
+  const location = useLocation()
 
   useEffect(() => {
     if (!open) return
@@ -29,7 +30,12 @@ export default function UserMenu({ user, onSignOut }) {
 
   if (!user) {
     return (
-      <Link to="/login" className="flex items-center text-base text-neutral-700">
+      // `from`: a tela de onde a pessoa saiu. Depois de entrar ou criar a conta, ela volta para lá.
+      <Link
+        to="/login"
+        state={{ from: location.pathname + location.search }}
+        className="flex items-center text-base text-neutral-700"
+      >
         <span className={iconBox}>
           <img src={userIcon} alt="" className="size-6" />
         </span>
@@ -75,13 +81,14 @@ export default function UserMenu({ user, onSignOut }) {
           role="menu"
           className="absolute right-0 top-full mt-2 min-w-40 animate-dropdown rounded-card bg-neutral-700 p-1 text-base font-medium text-neutral-200"
         >
+          {/* A conta de administrador não tem perfil de cliente (pedidos, endereços): ela tem o painel. */}
           <Link
-            to="/perfil"
+            to={user.role === 'admin' ? '/admin/produtos' : '/perfil'}
             role="menuitem"
             onClick={() => setOpen(false)}
             className="block w-full rounded-card px-3 py-2 text-left transition-colors hover:bg-neutral-500/50"
           >
-            Meu perfil
+            {user.role === 'admin' ? 'Painel administrativo' : 'Meu perfil'}
           </Link>
           <button
             type="button"

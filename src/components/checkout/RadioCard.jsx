@@ -12,7 +12,7 @@ export default function RadioCard({ checked, label, onSelect, onDelete, deleteLa
       onClick={(event) => {
         if (!event.target.closest('button, select, a, input')) onSelect()
       }}
-      className={`flex cursor-pointer gap-5 rounded-[10px] border-2 border-card-border bg-white p-3 ${className}`}
+      className={`flex cursor-pointer gap-5 rounded-card border-2 border-card-border bg-white p-3 ${className}`}
     >
       {/* Só o cartão selecionado entra no Tab (padrão "roving tabindex"); as setas trocam a seleção. */}
       <button

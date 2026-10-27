@@ -14,6 +14,9 @@ export default function ExpandableField({
   onToggle,
   openLabel,
   closedLabel,
+  // Travado: só mostra o valor (sem lápis nem painel), com um aviso do porquê (ex.: o e-mail do administrador).
+  locked = false,
+  lockedHint,
   children,
 }) {
   const panelId = `${id}-panel`
@@ -31,6 +34,18 @@ export default function ExpandableField({
   // deve descartar o que a pessoa digitou. O botão trata do próprio clique.
   const handleBarClick = (event) => {
     if (!open && !event.target.closest('button')) onToggle()
+  }
+
+  if (locked) {
+    return (
+      <div className="flex flex-col gap-2">
+        <span className="text-xl font-semibold">{label}</span>
+        <div className="flex h-16 items-center rounded-card border-2 border-card-border bg-field-readonly px-3 py-2.5 text-xl font-semibold text-neutral-300">
+          {display}
+        </div>
+        {lockedHint && <p className="text-base text-muted">{lockedHint}</p>}
+      </div>
+    )
   }
 
   return (

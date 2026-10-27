@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import saveIcon from '../../assets/icons/profile/save-white.svg'
 import { formatCep } from '../../utils/format'
 import { validateAddress } from '../../utils/checkoutValidation'
-import Button from '../Button'
+import SaveButton from '../profile/SaveButton'
 import TextField from './TextField'
 
 const EMPTY = { cep: '', street: '', number: '', complement: '', district: '', city: '', uf: '' }
+// Obrigatórios para salvar (o complemento é opcional).
+const REQUIRED = ['cep', 'street', 'number', 'district', 'city', 'uf']
+const FIELDS = [...REQUIRED, 'complement']
 
 // Formulário de endereço (novo ou edição). Mesmo desenho do Figma: título em Fraunces 24, três linhas de campos
 // (CEP + Rua / Número + Complemento / Bairro + Cidade + UF) e o botão à direita. As larguras do Figma viram proporções
@@ -31,8 +33,14 @@ export default function AddressForm({ initial, title, submitLabel, onSubmit, ope
     },
   })
 
+  // O botão só libera com todos os campos obrigatórios preenchidos E, ao editar, com alguma mudança em relação ao endereço salvo.
+  const filled = REQUIRED.every((field) => values[field].trim())
+  const changed = !initial || FIELDS.some((field) => values[field].trim() !== (initial[field] ?? '').trim())
+  const canSave = filled && changed
+
   const handleSubmit = (event) => {
     event.preventDefault()
+    if (!canSave) return
     const found = validateAddress(values)
     setErrors(found)
     if (Object.keys(found).length > 0) return
@@ -44,37 +52,35 @@ export default function AddressForm({ initial, title, submitLabel, onSubmit, ope
       onSubmit={handleSubmit}
       noValidate
       aria-label={title}
-      className="flex flex-col items-end gap-6 rounded-card border border-card-border bg-card p-6"
+      className="flex flex-col items-end gap-6 rounded-card border-2 border-card-border bg-card p-6"
     >
       <div className="flex w-full flex-col gap-6">
         <h3 className="font-heading text-2xl font-semibold text-red-300">{title}</h3>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <div className="grid grid-cols-[262fr_530fr] gap-3">
             <TextField
               ref={firstFieldRef}
               label="CEP"
-              placeholder="00000-000"
               inputMode="numeric"
               autoComplete="postal-code"
               {...bind('cep', formatCep)}
             />
-            <TextField label="Rua" placeholder="Rua das Flores" autoComplete="address-line1" {...bind('street')} />
+            <TextField label="Rua" autoComplete="address-line1" {...bind('street')} />
           </div>
           <div className="grid grid-cols-[215fr_577fr] gap-3">
-            <TextField label="Número" placeholder="123" autoComplete="off" {...bind('number')} />
+            <TextField label="Número" autoComplete="off" {...bind('number')} />
             <TextField
-              label="Complemento"
-              placeholder="Apto, bloco, referência"
+              label="Complemento (Apto, bloco, referência)"
+              optional
               autoComplete="address-line2"
               {...bind('complement')}
             />
           </div>
           <div className="grid grid-cols-[377fr_289fr_114fr] gap-3">
-            <TextField label="Bairro" placeholder="Centro" autoComplete="off" {...bind('district')} />
-            <TextField label="Cidade" placeholder="Fortaleza" autoComplete="address-level2" {...bind('city')} />
+            <TextField label="Bairro" autoComplete="off" {...bind('district')} />
+            <TextField label="Cidade" autoComplete="address-level2" {...bind('city')} />
             <TextField
               label="UF"
-              placeholder="CE"
               maxLength={2}
               autoComplete="address-level1"
               {...bind('uf', (value) => value.toUpperCase())}
@@ -82,9 +88,9 @@ export default function AddressForm({ initial, title, submitLabel, onSubmit, ope
           </div>
         </div>
       </div>
-      <Button type="submit" size="large" icon={saveIcon} className="w-[367px] max-w-full">
+      <SaveButton size="large" disabled={!canSave} className="w-[367px] max-w-full">
         {submitLabel}
-      </Button>
+      </SaveButton>
     </form>
   )
 }

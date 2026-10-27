@@ -23,7 +23,7 @@ function PriceField({ label, value, onCommit }) {
   }
 
   return (
-    <label className="flex w-[141px] flex-col gap-[5px] rounded-input border-2 border-red-300 px-2 py-1 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-red-300">
+    <label className="flex min-w-0 flex-col gap-[5px] rounded-input border-2 border-red-300 px-2 py-1 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-red-300">
       <span className="text-sm font-semibold text-red-100/50">{label}</span>
       <input
         type="text"
@@ -51,7 +51,7 @@ export default function PriceRange({ min, max, onChange }) {
   const clamp = (value) => Math.min(Math.max(value, PRICE_BOUNDS.min), PRICE_BOUNDS.max)
 
   return (
-    <div className="flex items-center gap-5" role="group" aria-label="Faixa de preço">
+    <div className="grid grid-cols-2 gap-6" role="group" aria-label="Faixa de preço">
       <PriceField label="Mínimo" value={min} onCommit={(value) => onChange({ min: Math.min(clamp(value), max), max })} />
       <PriceField label="Máximo" value={max} onCommit={(value) => onChange({ min, max: Math.max(clamp(value), min) })} />
     </div>

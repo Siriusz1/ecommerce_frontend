@@ -1,17 +1,19 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import PasswordField from '../components/PasswordField'
 import TextField from '../components/TextField'
 import AuthLayout from '../components/auth/AuthLayout'
 import AuthLinks from '../components/auth/AuthLinks'
 import PrimaryButton from '../components/auth/PrimaryButton'
+import AccountNotice from '../components/auth/AccountNotice'
 import SocialLogin from '../components/auth/SocialLogin'
 import { useAuth } from '../context/useAuth'
-import { login } from '../services/auth'
+import { isAdminEmail, login } from '../services/auth'
 import { MIN_PASSWORD_LENGTH, messages, validateEmail } from '../utils/authValidation'
 
 export default function Login() {
   const navigate = useNavigate()
+  const { state } = useLocation()
   const { signIn } = useAuth()
   const [errors, setErrors] = useState({})
   // A dica "mínimo 6 caracteres" existe no Figma, mas começa escondida: só aparece depois
@@ -28,7 +30,8 @@ export default function Login() {
     const password = form.elements.password.value
 
     const emailError = validateEmail(email)
-    const passwordTooShort = password.length < MIN_PASSWORD_LENGTH
+    // A senha do administrador ("admin") é mais curta que o mínimo das contas de cliente: ela não passa pela dica.
+    const passwordTooShort = password.length < MIN_PASSWORD_LENGTH && !isAdminEmail(email)
     setErrors(emailError ? { email: emailError } : {})
     setShowPasswordHint(passwordTooShort)
     if (emailError || passwordTooShort) {
@@ -38,8 +41,14 @@ export default function Login() {
 
     const result = await login({ email, password })
     if (result.ok) {
-      signIn({ name: result.name, email: result.email }) // o Header passa a mostrar "Olá, <nome>!"
-      navigate('/')
+      signIn({ name: result.name, email: result.email, role: result.role }) // o Header passa a mostrar "Olá, <nome>!"
+      // O administrador cai no painel (ou na tela de admin de onde veio). Quem veio barrado da sacola/checkout volta
+      // para lá; os demais vão para a Home.
+      if (result.role === 'admin') {
+        navigate(state?.from?.startsWith('/admin') ? state.from : '/admin/produtos', { replace: true })
+        return
+      }
+      navigate(state?.from ?? '/', { replace: true })
       return
     }
     // Erros vindos do servidor: cada um marca o campo correspondente.
@@ -50,6 +59,7 @@ export default function Login() {
 
   return (
     <AuthLayout>
+      {state?.needsAccount && <AccountNotice />}
       <div className="flex w-full flex-col items-center gap-8">
         {/* noValidate: a validação do navegador mostraria balões próprios; queremos as mensagens do design. */}
         <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-10">

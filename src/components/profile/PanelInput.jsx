@@ -13,7 +13,7 @@ export default function PanelInput({ id, label, error, type = 'text', ...props }
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-message` : undefined}
         placeholder={`${label}*`}
-        className={`h-[60px] w-full rounded-card border-2 bg-field px-3 text-xl font-semibold text-neutral-100 outline-none transition-shadow duration-200 placeholder:text-neutral-300 focus:shadow-ring motion-reduce:transition-none ${
+        className={`h-[60px] w-full rounded-card border-2 bg-field px-3 text-xl font-semibold text-neutral-100 outline-none transition-shadow duration-200 placeholder:text-placeholder focus:shadow-ring motion-reduce:transition-none ${
           error ? 'border-error' : 'border-card-border'
         }`}
         {...props}

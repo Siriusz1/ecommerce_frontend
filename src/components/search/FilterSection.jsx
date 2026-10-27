@@ -15,9 +15,8 @@ export default function FilterSection({ title, defaultOpen = true, children }) {
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((current) => !current)}
-          // leading-[30px]: o Figma dá 30px de altura ao título (o `normal` da fonte rende 29px), e é o que
-          // empurra cada seção para o lugar certo (1px a mais por título, acumulando até "Avaliação").
-          className="flex w-full items-start justify-between rounded-card text-left font-heading text-2xl font-semibold leading-[30px] text-red-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
+          // Título em Mulish 24px semibold (o Figma trocou o Fraunces por ele nos filtros), com 30px de altura.
+          className="flex w-full items-start justify-between rounded-card text-left text-2xl font-semibold leading-[30px] text-red-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
         >
           {title}
           <img src={chevron} alt="" className="size-6" />
