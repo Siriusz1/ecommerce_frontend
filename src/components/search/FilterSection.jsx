@@ -16,7 +16,7 @@ export default function FilterSection({ title, defaultOpen = true, children }) {
           aria-controls={panelId}
           onClick={() => setOpen((current) => !current)}
           // Título em Mulish 24px semibold (o Figma trocou o Fraunces por ele nos filtros), com 30px de altura.
-          className="flex w-full items-start justify-between rounded-card text-left text-2xl font-semibold leading-[30px] text-red-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
+          className="flex w-full items-start justify-between rounded-card text-left text-2xl font-semibold leading-[30px] text-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
         >
           {title}
           <img src={chevron} alt="" className="size-6" />

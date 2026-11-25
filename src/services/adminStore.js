@@ -110,8 +110,20 @@ export function addCategory(name) {
   if (!trimmed) return { ok: false, reason: 'EMPTY' }
   if (state.categories.some((category) => sameName(category.name, trimmed))) return { ok: false, reason: 'DUPLICATE' }
   const id = uniqueId(slugify(trimmed), state.categories.map((category) => category.id))
-  update({ categories: [...state.categories, { id, name: trimmed }] })
+  update({ categories: [...state.categories, { id, name: trimmed, featured: false }] })
   return { ok: true, id }
+}
+
+// Categorias principais = as do menu do topo da loja (Header). No máximo MAX_FEATURED: marcar mais uma é recusado.
+export const MAX_FEATURED = 5
+
+export function toggleCategoryFeatured(id) {
+  const category = state.categories.find((item) => item.id === id)
+  if (!category) return { ok: false, reason: 'NOT_FOUND' }
+  const featuredCount = state.categories.filter((item) => item.featured).length
+  if (!category.featured && featuredCount >= MAX_FEATURED) return { ok: false, reason: 'LIMIT' }
+  update({ categories: state.categories.map((item) => (item.id === id ? { ...item, featured: !item.featured } : item)) })
+  return { ok: true }
 }
 
 export function renameCategory(id, name) {

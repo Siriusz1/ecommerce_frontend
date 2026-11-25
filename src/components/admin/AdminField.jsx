@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import chevron from '../../assets/icons/admin/filter-chevron.svg'
+import clearIcon from '../../assets/icons/admin/search-clear.svg'
 import searchIcon from '../../assets/icons/search-dark.svg'
 import { fieldClass } from './fieldClass'
 
@@ -24,10 +25,11 @@ export function Field({ label, error, hint, labelClassName = 'text-[15px]', clas
 }
 
 // Lista de opções com a seta do Figma (<select> nativo: teclado e leitor de tela de graça).
-export function Select({ options, className = '', height = 'h-12', ...props }) {
+// `inputClassName`: classes extras do próprio campo (ex.: fundo transparente nas barras de filtro).
+export function Select({ options, className = '', inputClassName = '', height = 'h-12', ...props }) {
   return (
     <div className={`relative ${className}`}>
-      <select {...props} className={`${fieldClass} ${height} appearance-none pr-10`}>
+      <select {...props} className={`${fieldClass} ${height} appearance-none pr-10 ${inputClassName}`}>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -39,12 +41,25 @@ export function Select({ options, className = '', height = 'h-12', ...props }) {
   )
 }
 
-// Campo de busca com a lupa à direita.
-export function SearchInput({ className = '', ...props }) {
+// Campo de busca com a lupa à direita. Com `onClear` e algo digitado, a lupa vira um X que limpa a busca (Figma: estado
+// "buscando" da tela de Produtos).
+export function SearchInput({ className = '', inputClassName = '', height = 'h-12', onClear, ...props }) {
+  const clearable = onClear && String(props.value ?? '').length > 0
   return (
     <div className={`relative ${className}`}>
-      <input type="search" {...props} className={`${fieldClass} h-12 pr-12 [&::-webkit-search-cancel-button]:hidden`} />
-      <img src={searchIcon} alt="" className="pointer-events-none absolute right-3 top-1/2 size-6 opacity-60 -translate-y-1/2" />
+      <input type="search" {...props} className={`${fieldClass} ${height} pr-12 [&::-webkit-search-cancel-button]:hidden ${inputClassName}`} />
+      {clearable ? (
+        <button
+          type="button"
+          aria-label="Limpar a busca"
+          onClick={onClear}
+          className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-card"
+        >
+          <img src={clearIcon} alt="" className="size-6" />
+        </button>
+      ) : (
+        <img src={searchIcon} alt="" className="pointer-events-none absolute right-3 top-1/2 size-6 opacity-60 -translate-y-1/2" />
+      )}
     </div>
   )
 }

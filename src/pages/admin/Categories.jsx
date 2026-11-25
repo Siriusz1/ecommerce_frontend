@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import editIcon from '../../assets/icons/admin/edit.svg'
+import checkIcon from '../../assets/icons/admin/checkbox-check.svg'
 import plusDark from '../../assets/icons/admin/plus-dark-sm.svg'
 import plusWhite from '../../assets/icons/admin/plus-white-sm.svg'
 import trashIcon from '../../assets/icons/admin/trash.svg'
 import AdminPagination from '../../components/admin/AdminPagination'
 import { fieldClass } from '../../components/admin/fieldClass'
 import IconAction from '../../components/admin/IconAction'
+import NewGroupDialog from '../../components/admin/NewGroupDialog'
 import PageTitle from '../../components/admin/PageTitle'
 import Button from '../../components/Button'
 import ConfirmDialog from '../../components/ConfirmDialog'
@@ -16,7 +18,9 @@ import {
   deleteCategory,
   deleteFilterGroup,
   deleteFilterOption,
+  MAX_FEATURED,
   renameCategory,
+  toggleCategoryFeatured,
   renameFilterGroup,
   useAdminCategories,
   useAdminFilterGroups,
@@ -28,7 +32,7 @@ const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`
 
 // "Nova categoria / opção / grupo": campo + botão. O botão fica desabilitado enquanto não há nome; o erro do cadastro
 // (nome repetido) aparece embaixo e some quando a pessoa volta a digitar.
-function AddForm({ label, onAdd, placeholder = 'Ex: Mãos', className = '' }) {
+function AddForm({ label, onAdd, placeholder = 'Ex: Mãos', className = '', autoFocus = false }) {
   const [value, setValue] = useState('')
   const [error, setError] = useState()
 
@@ -45,6 +49,8 @@ function AddForm({ label, onAdd, placeholder = 'Ex: Mãos', className = '' }) {
     <form onSubmit={submit} noValidate className={`flex flex-col gap-2 ${className}`}>
       <div className="flex items-center gap-3">
         <input
+          // Só logo depois de criar um grupo: o cursor já vai para as opções dele.
+          autoFocus={autoFocus}
           aria-label={label}
           aria-invalid={error ? true : undefined}
           value={value}
@@ -53,10 +59,10 @@ function AddForm({ label, onAdd, placeholder = 'Ex: Mãos', className = '' }) {
             setValue(event.target.value)
             setError(undefined)
           }}
-          className={`${fieldClass} h-12 flex-1 ${error ? 'border-error' : ''}`}
+          className={`${fieldClass} h-12 flex-1 font-normal ${error ? 'border-error' : ''}`}
         />
         {/* Sempre na cor de ação (Figma): com o campo vazio, o clique mostra "Digite um nome." */}
-        <Button type="submit" size="small" icon={plusWhite}>
+        <Button type="submit" icon={plusWhite}>
           Adicionar
         </Button>
       </div>
@@ -126,6 +132,7 @@ export default function Categories() {
   const [editingCategory, setEditingCategory] = useState(null)
   const [editingGroup, setEditingGroup] = useState(null)
   const [addingGroup, setAddingGroup] = useState(false)
+  const [justCreated, setJustCreated] = useState(null) // grupo recém-criado: realce rápido e foco em "Nova opção"
   const [rowError, setRowError] = useState(null) // { id, message } da categoria que não pôde ser excluída
   const [confirmation, setConfirmation] = useState(null)
 
@@ -160,26 +167,46 @@ export default function Categories() {
       <PageTitle title="Categorias" description="Organize os produtos da loja. Todos precisam pertencer a uma categoria." />
 
       <div className="flex flex-col gap-5">
-        <div className="overflow-hidden rounded-card border-2 border-card-border bg-section">
+        <div className="overflow-hidden rounded-xl border-2 border-card-border bg-card">
           {visible.map((category) => {
             const count = products.filter((product) => product.category === category.id).length
             const editing = editingCategory === category.id
             return (
               <div key={category.id} className="border-b border-card-border px-5 py-4">
                 <div className="flex items-center justify-between gap-4">
-                  {editing ? (
-                    <RenameForm
-                      initial={category.name}
-                      label={`Novo nome da categoria ${category.name}`}
-                      onSave={(name) => renameCategory(category.id, name)}
-                      onCancel={() => setEditingCategory(null)}
-                    />
-                  ) : (
-                    <div className="flex w-[320px] flex-col gap-1 whitespace-nowrap">
-                      <p className="text-lg font-semibold text-red-300">{category.name}</p>
-                      <p className="text-sm font-medium text-neutral-300">{plural(count, 'produto', 'produtos')}</p>
-                    </div>
-                  )}
+                  <div className="flex flex-1 items-center gap-3">
+                    {/* Marcada = categoria principal: aparece no menu do topo da loja (no máximo 5). */}
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={Boolean(category.featured)}
+                      aria-label={`Mostrar ${category.name} no menu da loja`}
+                      onClick={() => {
+                        const result = toggleCategoryFeatured(category.id)
+                        setRowError(
+                          result.ok ? null : { id: category.id, message: `Você já tem ${MAX_FEATURED} categorias no menu. Desmarque uma antes.` },
+                        )
+                      }}
+                      className={`flex size-6 shrink-0 items-center justify-center rounded-[4px] border-2 border-red-800 focus-visible:shadow-ring focus-visible:outline-none ${
+                        category.featured ? 'bg-red-800' : ''
+                      }`}
+                    >
+                      {category.featured && <img src={checkIcon} alt="" className="size-5" />}
+                    </button>
+                    {editing ? (
+                      <RenameForm
+                        initial={category.name}
+                        label={`Novo nome da categoria ${category.name}`}
+                        onSave={(name) => renameCategory(category.id, name)}
+                        onCancel={() => setEditingCategory(null)}
+                      />
+                    ) : (
+                      <div className="flex w-[320px] flex-col gap-1 whitespace-nowrap">
+                        <p className="text-xl font-medium text-red-300">{category.name}</p>
+                        <p className="text-sm font-medium text-neutral-300">{plural(count, 'produto', 'produtos')}</p>
+                      </div>
+                    )}
+                  </div>
                   {!editing && (
                     <div className="flex gap-3">
                       <IconAction icon={editIcon} label={`Renomear a categoria ${category.name}`} onClick={() => setEditingCategory(category.id)} />
@@ -197,6 +224,9 @@ export default function Categories() {
           })}
 
           <div className="flex flex-col gap-4 px-5 py-4">
+            <p className="text-sm text-muted">
+              Você pode selecionar até {MAX_FEATURED} categorias principais, que ficam disponíveis no menu superior da loja.
+            </p>
             <p className="text-lg font-semibold text-red-300">Nova categoria</p>
             <AddForm label="Nome da nova categoria" onAdd={addCategory} />
           </div>
@@ -226,28 +256,30 @@ export default function Categories() {
           </p>
         </div>
 
-        <div className="flex flex-col items-start gap-4">
-          <Button type="button" variant="outline" size="small" icon={plusDark} hoverIcon={plusWhite} aria-expanded={addingGroup} onClick={() => setAddingGroup((open) => !open)}>
-            Adicionar novo grupo
-          </Button>
-          {addingGroup && (
-            <AddForm
-              label="Nome do novo grupo"
-              placeholder="Ex: Tipo de cabelo"
-              className="w-full"
-              onAdd={(name) => {
-                const result = addFilterGroup(name)
-                if (result.ok) setAddingGroup(false)
-                return result
-              }}
-            />
-          )}
-        </div>
+        {/* "Novo grupo" abre o modal de criação (NewGroupDialog, no fim da tela). O grupo criado entra no fim da lista, com um
+            realce rápido e o cursor já em "Nova opção" dele. */}
+        <Button
+          type="button"
+          variant="outline"
+          size="small"
+          icon={plusDark}
+          hoverIcon={plusWhite}
+          aria-haspopup="dialog"
+          onClick={() => setAddingGroup(true)}
+          className="self-start"
+        >
+          Novo grupo
+        </Button>
 
-        <div className="overflow-hidden rounded-card border-2 border-card-border bg-section">
+        <div className="overflow-hidden rounded-xl border border-card-border bg-panel">
           {groups.length === 0 && <p className="p-5 text-base text-muted">Nenhum grupo de filtro cadastrado.</p>}
           {groups.map((group) => (
-            <div key={group.id} className="flex flex-col gap-4 border-b-2 border-card-border p-5 last:border-b-0">
+            <div
+              key={group.id}
+              className={`flex flex-col gap-4 border-b-2 border-card-border bg-card p-5 last:border-b-0 ${
+                justCreated === group.id ? 'animate-group-created motion-reduce:animate-none' : ''
+              }`}
+            >
               <div className="flex items-center justify-between gap-4">
                 {editingGroup === group.id ? (
                   <RenameForm
@@ -312,13 +344,30 @@ export default function Categories() {
 
               <div className="flex flex-col gap-2">
                 <p className="text-[13px] font-medium text-neutral-300">Nova opção em {group.name}</p>
-                <AddForm label={`Nova opção em ${group.name}`} onAdd={(label) => addFilterOption(group.id, label)} />
+                <AddForm
+                  label={`Nova opção em ${group.name}`}
+                  autoFocus={justCreated === group.id}
+                  onAdd={(label) => addFilterOption(group.id, label)}
+                />
               </div>
             </div>
           ))}
         </div>
       </section>
 
+      {addingGroup && (
+        <NewGroupDialog
+          onCancel={() => setAddingGroup(false)}
+          onCreate={(name) => {
+            const result = addFilterGroup(name)
+            if (result.ok) {
+              setAddingGroup(false)
+              setJustCreated(result.id)
+            }
+            return result
+          }}
+        />
+      )}
       <ConfirmDialog request={confirmation} onCancel={() => setConfirmation(null)} />
     </div>
   )

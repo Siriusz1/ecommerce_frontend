@@ -10,7 +10,7 @@ export default function StockStepper({ value, onChange, label, variant = 'compac
   const set = (next) => onChange(Math.min(MAX_STOCK, Math.max(0, next)))
   const box =
     variant === 'field'
-      ? 'flex h-[60px] w-[194px] justify-between rounded-card border border-card-border bg-field px-2'
+      ? 'flex h-14 w-[194px] justify-between rounded-card border-2 border-card-border bg-white px-2'
       : 'inline-flex gap-[15px] rounded-card border-2 border-card-border bg-white p-1'
 
   return (

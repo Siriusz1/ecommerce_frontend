@@ -1,5 +1,5 @@
 const TONES = {
-  ok: 'bg-field-readonly text-green-200', // Em estoque, Pago
+  ok: 'bg-card-border text-badge', // Em estoque, Pago (Figma: fundo "border/default" e texto "Olive/800")
   alert: 'bg-danger-bg text-red-300', // Sem estoque, Cancelado
   wait: 'bg-wait-bg text-wait', // Aguardando; produto com algum volume sem estoque
   out: 'bg-link text-neutral-700', // Sem estoque: o vermelho-tijolo do site (o dos links), sólido para se ver sobre a linha rosada

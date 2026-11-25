@@ -16,16 +16,19 @@ export default function AdminPagination({ page, pageSize, total, noun, onPage, o
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <p role="status" className="text-sm text-muted">
-          Mostrando {from} - {to} de {total} {noun}
+      {/* Figma: "Mostrando: 8 por página ⌄", com o tamanho da página como um link (o <select> fica sem caixa). A contagem
+          ("1 - 8 de 98 pedidos") continua para leitores de tela e no balão ao passar o mouse. */}
+      <div className="flex items-center text-base font-medium text-red-800" title={`${from} - ${to} de ${total} ${noun}`}>
+        <span>Mostrando:&nbsp;</span>
+        <p role="status" className="sr-only">
+          {from} - {to} de {total} {noun}
         </p>
-        <label className="relative">
+        <label className="relative flex items-center">
           <span className="sr-only">Itens por página</span>
           <select
             value={pageSize}
             onChange={(event) => onPageSize(Number(event.target.value))}
-            className="appearance-none rounded-card border border-card-border bg-field py-2 pl-3 pr-9 text-sm text-red-300 outline-none focus-visible:shadow-ring"
+            className="cursor-pointer appearance-none rounded-card bg-transparent py-2 pl-1 pr-7 text-base font-medium text-link outline-none focus-visible:shadow-ring"
           >
             {sizes.map((size) => (
               <option key={size} value={size}>
@@ -33,7 +36,7 @@ export default function AdminPagination({ page, pageSize, total, noun, onPage, o
               </option>
             ))}
           </select>
-          <img src={chevron} alt="" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2" />
+          <img src={chevron} alt="" className="pointer-events-none absolute right-1.5 top-1/2 size-4 -translate-y-1/2" />
         </label>
       </div>
 

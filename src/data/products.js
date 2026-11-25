@@ -67,8 +67,6 @@ export const SKIN_AREAS = ['Rosto', 'Corpo']
 export const HAIR_AREAS = ['Cabelo']
 // A "Categoria" do filtro: as categorias do menu da navbar. Clicar numa leva à busca (/busca?tipo=Hidratação), filtrada por ela.
 export const TYPES = ['Limpeza', 'Tratamento e Nutrição', 'Hidratação', 'Tonificação', 'Proteção']
-// Faixa de preço dos campos Mínimo/Máximo do filtro (os valores que o Figma desenha).
-export const PRICE_BOUNDS = { min: 0, max: 500 }
 
 const SEARCH_PRICES = [150, 89.9, 210, 49.9, 320, 120, 75, 450, 180, 99.9]
 const SEARCH_RATINGS = [5, 4, 5, 3, 4, 2, 5, 1, 4, 5]

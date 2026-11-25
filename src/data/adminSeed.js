@@ -3,13 +3,14 @@ import productPhoto from '../assets/images/admin/product-photo.jpg'
 // Dados de exemplo do painel administrativo (não há backend). O catálogo da loja (data/products.js) é outro: o painel
 // parte destes dados e as alterações feitas nele valem só enquanto a página estiver aberta (ver services/adminStore.js).
 
+// `featured`: as categorias principais, que aparecem no menu do topo da loja (no máximo 5, marcadas na tela Categorias).
 export const SEED_CATEGORIES = [
-  { id: 'limpeza', name: 'Limpeza' },
-  { id: 'tratamento', name: 'Tratamento e Nutrição' },
-  { id: 'hidratacao', name: 'Hidratação' },
-  { id: 'tonificacao', name: 'Tonificação' },
-  { id: 'protecao', name: 'Proteção' },
-  { id: 'kits', name: 'Kits' },
+  { id: 'limpeza', name: 'Limpeza', featured: true },
+  { id: 'tratamento', name: 'Tratamento e Nutrição', featured: true },
+  { id: 'hidratacao', name: 'Hidratação', featured: true },
+  { id: 'tonificacao', name: 'Tonificação', featured: true },
+  { id: 'protecao', name: 'Proteção', featured: true },
+  { id: 'kits', name: 'Kits', featured: false },
 ]
 
 // Grupos de "filtro por característica": são os filtros da busca da loja (Área de aplicação, Tipo de pele, Tipo de cabelo).
