@@ -19,10 +19,13 @@ export default function AdminLayout() {
     // tela para outra (umas rolam e outras não).
     <div className="admin-shell min-h-screen bg-neutral-700">
       <AdminHeader />
-      {/* pt-[116px]: os 72px da barra + 44px de respiro (Figma). A coluna da direita sobra 79px à direita. */}
+      {/* pt-[116px]: os 72px da barra + 44px de respiro para o menu lateral. A coluna da direita sobra 79px à direita
+          e fica a 24px do menu (273px de menu no Figma, o conteúdo começa em 297px). */}
       <div className="mx-auto flex max-w-page items-start gap-[60px] pb-14 pl-12 pr-[79px] pt-[116px]">
         <AdminSidebar />
-        <main className="min-w-0 flex-1">
+        {/* Espaço entre a barra e o título da página (Figma): 70px em Produtos e Categorias (os 26px de pt somam aos 44px do
+            layout); nas telas de formulário (novo/editar produto) o topo é a trilha de navegação, a 32px (-mt-3). */}
+        <main className={`min-w-0 flex-1 ${/\/(novo|editar)$/.test(location.pathname) ? '-mt-3' : 'pt-[26px]'}`}>
           <Outlet />
         </main>
       </div>

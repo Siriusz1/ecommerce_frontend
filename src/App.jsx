@@ -21,6 +21,7 @@ import ProductEditor from './pages/admin/ProductEditor'
 import Products from './pages/admin/Products'
 import Reports from './pages/admin/Reports'
 import Sales from './pages/admin/Sales'
+import VariantEditor from './pages/admin/VariantEditor'
 
 // O React Router não volta ao topo sozinho ao trocar de tela: clicar num card no meio da Home abriria
 // a tela do produto já rolada. Isto leva a página ao topo a cada troca de endereço.
@@ -75,8 +76,9 @@ export default function App() {
           <Route index element={<Navigate to="produtos" replace />} />
           <Route path="produtos" element={<Products />} />
           <Route path="produtos/novo" element={<ProductEditor />} />
-          <Route path="produtos/:variantId/editar" element={<ProductEditor />} />
-          <Route path="produtos/:productId/volumes/novo" element={<ProductEditor />} />
+          {/* Produto: informações e fotos (comuns a todos os volumes). Volume: só o cadastro de um novo; preço e estoque mudam nas listas. */}
+          <Route path="produtos/:productId/editar" element={<ProductEditor />} />
+          <Route path="produtos/:productId/volumes/novo" element={<VariantEditor />} />
           <Route path="categorias" element={<Categories />} />
           <Route path="vendas" element={<Sales />} />
           <Route path="relatorios" element={<Reports />} />

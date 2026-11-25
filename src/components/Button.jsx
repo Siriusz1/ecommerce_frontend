@@ -39,12 +39,16 @@ export default function Button({
   // Só para `outline`: o ícone de repouso é escuro e some no fundo escuro do hover, então o Figma
   // usa uma versão clara dele ao passar o mouse.
   hoverIcon,
+  // Ícone do estado desabilitado: o ícone claro do botão escuro some no fundo bege, então ele ganha uma versão no cinza
+  // do texto desabilitado (#807B71).
+  disabledIcon,
   className = '',
   children,
   ...props
 }) {
   const { box, icon: iconSize } = SIZES[size]
   const style = disabled ? DISABLED : VARIANTS[variant]
+  icon = disabled && disabledIcon ? disabledIcon : icon
   // O botão "disabled" de verdade só existe em <button>; nos demais, a aparência cinza é suficiente.
   const elementProps = Component === 'button' ? { disabled, type: props.type ?? 'button' } : {}
 

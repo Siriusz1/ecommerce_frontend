@@ -1,13 +1,18 @@
-import { CATEGORIES, HAIR_AREAS, HAIR_TYPES, PRICE_BOUNDS, SKIN_AREAS, SKIN_TYPES, TYPES } from '../data/products'
+import { CATEGORIES, HAIR_AREAS, HAIR_TYPES, SKIN_TYPES, TYPES } from '../data/products'
 
-export const PAGE_SIZE = 16
+// 18 fecha as linhas tanto na grade de 3 colunas (filtros ocultos) quanto na de 2 (filtros à mostra).
+export const PAGE_SIZE = 18
 
+// As opções do Figma, na ordem dele. "Mais recente" = o fim do catálogo primeiro (os itens novos entram no fim da lista).
 export const SORTS = [
-  { value: 'relevancia', label: 'Relevância' },
-  { value: 'menor-preco', label: 'Menor preço' },
+  { value: 'relevancia', label: 'Mais relevante' },
+  { value: 'recente', label: 'Mais recente' },
   { value: 'maior-preco', label: 'Maior preço' },
-  { value: 'avaliacao', label: 'Mais bem avaliados' },
+  { value: 'menor-preco', label: 'Menor preço' },
 ]
+
+// Notas do filtro "Avaliação" (Figma: de 5 a 1 estrela). Marcar várias soma os resultados (ex.: 5 e 4 estrelas).
+export const RATINGS = [5, 4, 3, 2, 1]
 
 // Sem acento e em minúsculas: "hidratação" encontra "Hidratacao" e vice-versa.
 const normalize = (text) =>
@@ -16,37 +21,36 @@ const normalize = (text) =>
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
 
-// Toda a tela é guiada pelo endereço (/busca?q=...&categoria=Rosto&estrelas=4...): recarregar, voltar e compartilhar
-// o link mantêm a busca. Esta função traduz os parâmetros em filtros, ignorando valores inválidos.
+// Toda a tela é guiada pelo endereço (/busca?q=...&area=Rosto&estrelas=5&estrelas=4...): recarregar, voltar e
+// compartilhar o link mantêm a busca. Esta função traduz os parâmetros em filtros, ignorando valores inválidos.
 export function readFilters(params) {
   const number = (key, fallback) => {
     const raw = params.get(key)
     const value = Number(raw)
     return raw !== null && raw !== '' && Number.isFinite(value) ? value : fallback
   }
-  const rating = Math.round(number('estrelas', 0))
   const sort = params.get('ordem')
-
   const areas = CATEGORIES.filter((area) => params.getAll('area').includes(area))
-  const hasArea = (list) => areas.some((area) => list.includes(area))
 
   return {
     query: (params.get('q') ?? '').trim(),
     types: TYPES.filter((type) => params.getAll('tipo').includes(type)), // "Categoria": as do menu da navbar
     categories: areas, // "Área de aplicação"
-    // Tipo de pele / de cabelo só existem enquanto a área correspondente está marcada: um valor solto no endereço (de uma
-    // área já desmarcada) é ignorado em vez de filtrar às escondidas.
-    skinTypes: hasArea(SKIN_AREAS) ? SKIN_TYPES.filter((type) => params.getAll('pele').includes(type)) : [],
-    hairTypes: hasArea(HAIR_AREAS) ? HAIR_TYPES.filter((type) => params.getAll('cabelo').includes(type)) : [],
-    minRating: rating >= 1 && rating <= 5 ? rating : 0,
-    minPrice: Math.min(Math.max(number('min', PRICE_BOUNDS.min), PRICE_BOUNDS.min), PRICE_BOUNDS.max),
-    maxPrice: Math.min(Math.max(number('max', PRICE_BOUNDS.max), PRICE_BOUNDS.min), PRICE_BOUNDS.max),
+    // Tipo de pele fica sempre à mostra (Figma). Tipo de cabelo só existe com a área Cabelo marcada: um valor solto no
+    // endereço (de uma área já desmarcada) é ignorado em vez de filtrar às escondidas.
+    skinTypes: SKIN_TYPES.filter((type) => params.getAll('pele').includes(type)),
+    hairTypes: areas.some((area) => HAIR_AREAS.includes(area)) ? HAIR_TYPES.filter((type) => params.getAll('cabelo').includes(type)) : [],
+    ratings: RATINGS.filter((stars) => params.getAll('estrelas').includes(String(stars))),
     sort: SORTS.some((option) => option.value === sort) ? sort : SORTS[0].value,
     page: Math.max(1, Math.floor(number('pagina', 1))),
   }
 }
 
-// Aplica `changes` (ex.: { categoria: ['Rosto'], estrelas: 4, min: null }) sobre os parâmetros atuais.
+// Quantos filtros estão marcados (o botão "Mostrar filtros" mostra esse número quando o painel está fechado).
+export const activeFilterCount = (filters) =>
+  filters.types.length + filters.categories.length + filters.skinTypes.length + filters.hairTypes.length + filters.ratings.length
+
+// Aplica `changes` (ex.: { area: ['Rosto'], estrelas: [5], pele: null }) sobre os parâmetros atuais.
 // `null`/vazio remove o parâmetro, e qualquer mudança volta para a página 1 (a menos que `pagina` venha junto).
 export function buildParams(current, changes) {
   const next = new URLSearchParams(current)
@@ -71,19 +75,21 @@ export function searchProducts(products, filters) {
     )
     if (!terms.every((term) => haystack.includes(term))) return false
     if (filters.categories.length > 0 && !filters.categories.includes(product.category)) return false
-    // Cada tipo restringe só os produtos a que se aplica (cabelo ou pele): marcar "Cabelo" e "Rosto" com "Pele seca"
-    // mantém todo o cabelo e só o rosto de pele seca.
+    // Tipo de cabelo: restringe só os produtos de cabelo.
     if (product.hairType && filters.hairTypes.length > 0 && !filters.hairTypes.includes(product.hairType)) return false
-    if (product.skinType && filters.skinTypes.length > 0 && !filters.skinTypes.includes(product.skinType)) return false
+    // Tipo de pele: restringe os produtos de pele. Os de cabelo só continuam se a área Cabelo também estiver marcada
+    // (marcar "Seca" sozinho mostra só pele seca; com "Cabelo" marcado junto, o cabelo continua).
+    if (filters.skinTypes.length > 0) {
+      if (product.skinType ? !filters.skinTypes.includes(product.skinType) : !filters.categories.includes('Cabelo')) return false
+    }
     if (filters.types.length > 0 && !filters.types.includes(product.type)) return false
-    if (product.rating < filters.minRating) return false
-    return product.price >= filters.minPrice && product.price <= filters.maxPrice
+    return filters.ratings.length === 0 || filters.ratings.includes(Math.round(product.rating))
   })
 
-  // O JS mantém a ordem original em empates: "Relevância" é a ordem do catálogo.
+  // O JS mantém a ordem original em empates: "Mais relevante" é a ordem do catálogo.
+  if (filters.sort === 'recente') return matches.toReversed()
   if (filters.sort === 'menor-preco') return matches.toSorted((a, b) => a.price - b.price)
   if (filters.sort === 'maior-preco') return matches.toSorted((a, b) => b.price - a.price)
-  if (filters.sort === 'avaliacao') return matches.toSorted((a, b) => b.rating - a.rating)
   return matches
 }
 

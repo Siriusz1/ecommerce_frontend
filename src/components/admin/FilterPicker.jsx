@@ -52,7 +52,7 @@ export default function FilterPicker({ id, value, groups, onChange, disabled = f
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((current) => !current)}
-        className={`${fieldClass} relative flex h-[60px] items-center pr-12 text-left`}
+        className={`${fieldClass} relative flex h-14 items-center pr-12 text-left`}
         {...props}
       >
         <span className={`truncate ${summary ? '' : 'text-placeholder'}`}>{summary || 'Selecione as opções'}</span>

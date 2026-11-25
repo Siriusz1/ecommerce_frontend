@@ -7,7 +7,7 @@ import logo from '../../assets/images/logo.png'
 import { useAuth } from '../../context/useAuth'
 import { useCart } from '../../context/useCart'
 import { useFavorites } from '../../context/useFavorites'
-import { TYPES } from '../../data/products'
+import { useAdminCategories } from '../../services/adminStore'
 import SearchBox from './SearchBox'
 import UserMenu from './UserMenu'
 
@@ -48,6 +48,12 @@ function useIsPastHero(heroRef) {
   return isPast
 }
 
+// O menu mostra as categorias principais, marcadas no painel (Admin > Categorias, no máximo 5), na ordem de lá.
+function useMenuCategories() {
+  const categories = useAdminCategories()
+  return categories.filter((category) => category.featured).map((category) => category.name)
+}
+
 function NavIconButton({ icon, label, ...props }) {
   return (
     <button type="button" aria-label={label} className="flex size-11 items-center justify-center" {...props}>
@@ -72,6 +78,7 @@ export default function Header({ heroRef, minimal = false }) {
   const { count: cartCount } = useCart()
   const { count: favoritesCount } = useFavorites()
   const isPastHero = useIsPastHero(heroRef)
+  const menuItems = useMenuCategories()
   // `pulse` sobe a cada vez que a quantidade AUMENTA (e só então): é a `key` que reinicia a animação da bolinha. Ajustar
   // o estado durante a renderização (e não num efeito) evita um quadro com o valor antigo.
   const [previousCount, setPreviousCount] = useState(cartCount)
@@ -135,7 +142,7 @@ export default function Header({ heroRef, minimal = false }) {
           }`}
         >
           {/* Cada categoria leva à busca filtrada por ela (/busca?tipo=...). */}
-          {TYPES.map((item) => {
+          {menuItems.map((item) => {
             const active = activeTypes.includes(item)
             return (
               <Link
